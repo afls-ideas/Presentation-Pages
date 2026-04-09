@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Content Demo</title>
+    <script src="../../shared/js/jquery.min.js"></script>
+    <style>
+        @import url('../../shared/fonts/montserrat.css');
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { width: 100%; height: 100vh; overflow: hidden; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; }
+        .slide { width: 100%; height: 100%; max-width: 2388px; max-height: 1668px; position: relative; background: white; overflow: hidden; border-radius: 12px; }
+        .content-container { position: relative; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; grid-template-areas: "header header" "left right"; height: 100%; padding: 40px; gap: 30px; }
+        .header { grid-area: header; display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 24px; font-weight: 600; color: #3a4674; }
+        .left-panel { grid-area: left; color: #333; padding-right: 20px; overflow-y: auto; }
+        .right-panel { grid-area: right; color: #333; overflow-y: auto; }
+        h2 { font-size: 22px; margin-bottom: 15px; font-weight: 600; color: #3a4674; }
+        h3 { font-size: 14px; margin-bottom: 8px; color: #3a4674; font-weight: 600; letter-spacing: 1px; }
+        .section { margin-bottom: 20px; }
+        .description { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+        .code-block { background: #f8f9ff; border: 1px solid rgba(91,107,176,0.15); border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 11px; color: #333; margin: 8px 0; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
+        .syntax-label { display: inline-block; background: #3a4674; color: white; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-bottom: 5px; font-weight: 600; }
+        .mustache-label { display: inline-block; background: #66CDAA; color: white; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-bottom: 5px; font-weight: 600; }
+        .data-label { display: inline-block; background: #9370DB; color: white; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-bottom: 5px; font-weight: 600; }
+        .note { background: linear-gradient(135deg, #f0f4ff, #fff); padding: 12px; border-radius: 8px; border-left: 4px solid #66CDAA; font-size: 12px; color: #555; margin: 10px 0; }
+        .live-output { background: #1e1e2e; color: #66CDAA; padding: 12px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 11px; min-height: 60px; margin: 8px 0; white-space: pre-wrap; word-break: break-word; max-height: 200px; overflow-y: auto; }
+        .btn { display: inline-block; padding: 10px 20px; border-radius: 30px; border: none; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.3s ease; margin: 4px 4px 4px 0; }
+        .btn-primary { background: linear-gradient(135deg, #3a4674, #5b6bb0); color: white; }
+        .btn-secondary { background: linear-gradient(135deg, #66CDAA, #4db896); color: white; }
+        .footer { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-between; padding: 15px 40px; z-index: 10; background: linear-gradient(to top, rgba(245,247,255,0.8), transparent); }
+        .footer-left { color: #777; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <div class="content-container">
+            <div class="header">
+                <div class="page-title">Dynamic Content Demo</div>
+            </div>
+
+            <div class="left-panel">
+                <h2>Mustache Templates</h2>
+                <p class="description">The LSC player uses a Mustache template processor to populate dynamic content from Salesforce data before each page loads.</p>
+
+                <div class="section">
+                    <span class="mustache-label">CUSTOMER LOOP</span>
+                    <div class="code-block" id="code_customer"></div>
+                </div>
+
+                <div class="section">
+                    <span class="mustache-label">USER INFO</span>
+                    <div class="code-block" id="code_user"></div>
+                </div>
+
+                <div class="section">
+                    <span class="mustache-label">VISIT INFO</span>
+                    <div class="code-block" id="code_visit"></div>
+                </div>
+
+                <div class="section">
+                    <span class="mustache-label">PRESENTATION INFO</span>
+                    <div class="code-block" id="code_presentation"></div>
+                </div>
+
+                <div class="section">
+                    <h3>LOADING DATA VIA JAVASCRIPT</h3>
+                    <div class="code-block" id="code_shorthand"></div>
+                </div>
+
+                <div class="note">
+                    <strong>Rules:</strong> Formula/lookup fields not supported. Standard fields: no prefix. Custom fields: use <code>__c</code> suffix. Mustache variables are lowercase.
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <h2>Live configData</h2>
+                <p class="description">The data below is loaded from the actual JSON that the LSC player provides to this presentation page.</p>
+
+                <div class="section">
+                    <h3>TOP-LEVEL FIELDS</h3>
+                    <div class="live-output" id="out_toplevel">Loading...</div>
+                </div>
+
+                <div class="section">
+                    <h3>PRESENTATIONS &amp; PAGE IDS</h3>
+                    <p class="description">Use these IDs with <code>goToSlide(pageId, slideName, animation)</code></p>
+                    <div class="live-output" id="out_presentations">Loading...</div>
+                </div>
+
+                <div class="section">
+                    <h3>CUSTOMERS</h3>
+                    <div class="live-output" id="out_customers">Loading...</div>
+                </div>
+
+                <div class="section">
+                    <h3>USER</h3>
+                    <div class="live-output" id="out_user">Loading...</div>
+                </div>
+
+                <div class="section">
+                    <h3>FULL JSON</h3>
+                    <button class="btn btn-primary" onclick="showFullJson()">Show Full configData</button>
+                    <div class="live-output" id="out_full" style="max-height:150px;">Tap button to display</div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-left">&copy; 2025 Makana Pharma Inc. All rights reserved.</div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // Populate Mustache syntax code blocks via JS
+        // so the LSC Mustache processor doesn't replace them
+        var b = String.fromCharCode(123);
+        var e = String.fromCharCode(125);
+        var cb = b+b;
+        var ce = e+e;
+        var cbt = b+b+b;
+        var cet = e+e+e;
+
+        document.getElementById('code_customer').textContent =
+            cb + '#customers' + ce + '\n' +
+            '  Customer: ' + cb + 'firstName' + ce + ' ' + cb + 'lastName' + ce + '\n' +
+            '  Type: ' + cb + 'accountType' + ce + '\n' +
+            '  Specialty: ' + cb + 'healthcareProviderSpecialties.0.name' + ce + '\n' +
+            cb + '/customers' + ce;
+
+        document.getElementById('code_user').textContent =
+            'Rep Name: ' + cb + 'user.name' + ce + '\n' +
+            'First: ' + cb + 'user.firstName' + ce + '\n' +
+            'Last: ' + cb + 'user.lastName' + ce;
+
+        document.getElementById('code_visit').textContent =
+            'Visit ID: ' + cb + 'visits.0.id' + ce + '\n' +
+            'Account ID: ' + cb + 'visits.0.accountId' + ce + '\n' +
+            'Is Parent: ' + cb + 'visits.0.isParent' + ce;
+
+        document.getElementById('code_presentation').textContent =
+            cb + '#presentations' + ce + '\n' +
+            '  Name: ' + cb + 'name' + ce + '\n' +
+            '  ' + cb + '#isCustom' + ce + 'Custom presentation' + cb + '/isCustom' + ce + '\n' +
+            '  ' + cb + '^isCustom' + ce + 'Standard presentation' + cb + '/isCustom' + ce + '\n' +
+            cb + '/presentations' + ce;
+
+        document.getElementById('code_shorthand').textContent =
+            '// In a <script> tag, use the Mustache shorthand:\n' +
+            'var configData = ' + cbt + '.' + cet + ';\n\n' +
+            '// The LSC player replaces ' + cbt + '.' + cet + ' with\n' +
+            '// the full JSON object before JS executes.\n' +
+            '// Then access data like:\n' +
+            '//   configData.currentMode\n' +
+            '//   configData.presentations[0].Pages[0].id\n' +
+            '//   configData.customers[0].firstName';
+
+        // Display functions
+        function displayData(data) {
+            // Top-level fields
+            var top = [];
+            top.push('currentMode: ' + JSON.stringify(data.currentMode));
+            top.push('currentTerritoryId: ' + JSON.stringify(data.currentTerritoryId));
+            top.push('currentTerritoryName: ' + JSON.stringify(data.currentTerritoryName));
+            top.push('emailTemplateId: ' + JSON.stringify(data.emailTemplateId));
+            top.push('state: ' + JSON.stringify(data.state));
+            top.push('presentationIndex: ' + data.presentationIndex);
+            top.push('pageIndex: ' + data.pageIndex);
+            top.push('slideIndex: ' + data.slideIndex);
+            document.getElementById('out_toplevel').textContent = top.join('\n');
+
+            // Presentations & Page IDs
+            var pres = [];
+            if (data.presentations) {
+                data.presentations.forEach(function(p, pi) {
+                    pres.push('presentations[' + pi + ']:');
+                    pres.push('  id: ' + JSON.stringify(p.id));
+                    pres.push('  name: ' + JSON.stringify(p.name));
+                    pres.push('  isCustom: ' + p.isCustom);
+                    if (p.Pages) {
+                        pres.push('  Pages: (' + p.Pages.length + ' pages)');
+                        p.Pages.forEach(function(pg, pgi) {
+                            pres.push('    Pages[' + pgi + ']:');
+                            pres.push('      id: ' + JSON.stringify(pg.id));
+                            if (pg.name) pres.push('      name: ' + JSON.stringify(pg.name));
+                            if (pg.sourceSystemIdentifier) pres.push('      sourceSystemIdentifier: ' + JSON.stringify(pg.sourceSystemIdentifier));
+                            if (pg.slides) {
+                                pg.slides.forEach(function(s, si) {
+                                    pres.push('      slides[' + si + '].name: ' + JSON.stringify(s.name));
+                                });
+                            }
+                        });
+                    }
+                });
+            } else {
+                pres.push('(no presentations data)');
+            }
+            document.getElementById('out_presentations').textContent = pres.join('\n');
+
+            // Customers
+            var cust = [];
+            if (data.customers && data.customers.length > 0) {
+                cust.push('customers: (' + data.customers.length + ' records)');
+                data.customers.forEach(function(c, i) {
+                    cust.push('  [' + i + '] ' + (c.firstName || '') + ' ' + (c.lastName || ''));
+                    cust.push('      id: ' + JSON.stringify(c.id));
+                    cust.push('      accountType: ' + c.accountType);
+                    if (c.name) cust.push('      name: ' + JSON.stringify(c.name));
+                    if (c.healthcareProviderSpecialties && c.healthcareProviderSpecialties.length > 0) {
+                        cust.push('      specialties: ' + c.healthcareProviderSpecialties.map(function(s){return s.name;}).join(', '));
+                    }
+                });
+            } else {
+                cust.push('(no customers in this session)');
+            }
+            document.getElementById('out_customers').textContent = cust.join('\n');
+
+            // User
+            var usr = [];
+            if (data.user) {
+                usr.push('name: ' + JSON.stringify(data.user.name));
+                usr.push('firstName: ' + JSON.stringify(data.user.firstName));
+                usr.push('lastName: ' + JSON.stringify(data.user.lastName));
+            } else {
+                usr.push('(no user data)');
+            }
+            document.getElementById('out_user').textContent = usr.join('\n');
+        }
+
+        var configData = null;
+
+        function showFullJson() {
+            if (configData) {
+                document.getElementById('out_full').textContent = JSON.stringify(configData, null, 2);
+            } else {
+                document.getElementById('out_full').textContent = '(configData not loaded)';
+            }
+        }
+    </script>
+
+    <!-- The LSC player replaces {{{.}}} with the full JSON before JS executes -->
+    <script type="text/javascript">
+        try {
+            configData = {{{.}}};
+            displayData(configData);
+        } catch(err) {
+            document.getElementById('out_toplevel').textContent = 'Error loading configData: ' + err.message;
+        }
+    </script>
+</body>
+</html>

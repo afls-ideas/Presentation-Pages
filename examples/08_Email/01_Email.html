@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Demo</title>
+    <script src="../../shared/js/jquery.min.js"></script>
+    <style>
+        @import url('../../shared/fonts/montserrat.css');
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { width: 100%; height: 100vh; overflow: hidden; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; }
+        .slide { width: 100%; height: 100%; max-width: 2388px; max-height: 1668px; position: relative; background: white; overflow: hidden; border-radius: 12px; }
+        .content-container { position: relative; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; grid-template-areas: "header header" "left right"; height: 100%; padding: 40px; gap: 30px; }
+        .header { grid-area: header; display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 24px; font-weight: 600; color: #3a4674; }
+        .left-panel { grid-area: left; color: #333; padding-right: 20px; overflow-y: auto; }
+        .right-panel { grid-area: right; color: #333; overflow-y: auto; }
+        h2 { font-size: 22px; margin-bottom: 15px; font-weight: 600; color: #3a4674; }
+        h3 { font-size: 15px; margin-bottom: 10px; color: #3a4674; font-weight: 600; }
+        .section { margin-bottom: 25px; }
+        .description { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+        .code-block { background: #f8f9ff; border: 1px solid rgba(91,107,176,0.15); border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 12px; color: #333; margin: 8px 0; white-space: pre-wrap; }
+        .syntax-label { display: inline-block; background: #3a4674; color: white; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-bottom: 5px; font-weight: 600; }
+        .email-label { display: inline-block; background: #9370DB; color: white; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-bottom: 5px; font-weight: 600; }
+        .btn { display: inline-block; padding: 12px 24px; border-radius: 30px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; margin: 5px 5px 5px 0; }
+        .btn-primary { background: linear-gradient(135deg, #3a4674, #5b6bb0); color: white; }
+        .btn-secondary { background: linear-gradient(135deg, #66CDAA, #4db896); color: white; }
+        .note { background: linear-gradient(135deg, #f0f4ff, #fff); padding: 12px; border-radius: 8px; border-left: 4px solid #66CDAA; font-size: 12px; color: #555; margin: 10px 0; }
+        input[type="text"] { width: 100%; padding: 10px 12px; border: 1px solid rgba(91,107,176,0.2); border-radius: 8px; font-size: 13px; margin: 5px 0; }
+        label { font-size: 12px; font-weight: 600; color: #3a4674; display: block; margin-top: 10px; }
+        .footer { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-between; padding: 15px 40px; z-index: 10; background: linear-gradient(to top, rgba(245,247,255,0.8), transparent); }
+        .footer-left { color: #777; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <div class="content-container">
+            <div class="header">
+                <div class="page-title">Email Demo</div>
+            </div>
+
+            <div class="left-panel">
+                <h2>launchApprovedEmail</h2>
+                <p class="description">Opens the Send Email window with the email template that's linked to the current presentation page. If there's no email template ID on the page, nothing happens.</p>
+
+                <div class="section">
+                    <span class="syntax-label">SYNTAX</span>
+                    <div class="code-block">PresentationPlayer.launchApprovedEmail()</div>
+                </div>
+
+                <div class="section">
+                    <button class="btn btn-primary" onclick="launchApproved()">Launch Approved Email</button>
+                </div>
+
+                <div class="note">
+                    <strong>Prerequisite:</strong> The presentation page must have an <code>emailTemplateId</code> associated with it. This ID is available in the JSON data at the top level.
+                </div>
+
+                <div class="section">
+                    <h3>EMAIL TEMPLATE FUNCTIONS (for template HTML)</h3>
+                    <p class="description">These functions are used inside email template HTML files (not presentation pages):</p>
+
+                    <span class="email-label">FETCH DATA IN EMAIL</span>
+                    <div class="code-block">EmailTemplate.fetchWithParams(
+  'SELECT Id, Name FROM Account',
+  {'batchSize': 100},
+  'getAccountRecordsCallback'
+);</div>
+
+                    <span class="email-label">VALIDATION FAILED</span>
+                    <div class="code-block">// Prevent sending if data is missing
+EmailTemplate.fetchValidationFailed(
+  'Type is missing'
+);</div>
+                </div>
+
+                <div class="note">
+                    <strong>Email Template Rules:</strong> Max 100 records per fetch. Avoid setTimeout, setInterval, and promises. Use parent-based CSS styles (not global). Place scripts in <code>&lt;script type="text/javascript"&gt;</code> tags.
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <h2>launchEmails</h2>
+                <p class="description">Opens the Send Email window with specific email templates, or all templates available for the selected territory if left blank.</p>
+
+                <div class="section">
+                    <span class="syntax-label">SYNTAX</span>
+                    <div class="code-block">PresentationPlayer.launchEmails(templates)</div>
+                </div>
+
+                <div class="section">
+                    <label>Template Names (comma-separated, or blank for all)</label>
+                    <input type="text" id="templateNames" placeholder="e.g., Template_A, Template_B">
+                    <br><br>
+                    <button class="btn btn-primary" onclick="launchWithTemplates()">Launch With Templates</button>
+                    <button class="btn btn-secondary" onclick="launchAllTemplates()">Launch All Templates</button>
+                </div>
+
+                <div class="note">
+                    <strong>Arguments:</strong> A comma-separated list of email template names. If left blank, users see all templates available for the selected territory.
+                </div>
+
+                <div class="section">
+                    <h3>BEST PRACTICES FOR EMAIL PRESENTATIONS</h3>
+                    <div class="code-block">// In ZIP source files, include a PDF attachment
+// Use 'required__' prefix to make it mandatory:
+//   required__presentation.pdf
+
+// The PDF is sent as the email attachment
+// PDFs under 3 MB are auto-attached to the
+// presentation page record
+
+// Email template HTML example:
+&lt;html&gt;
+  &lt;script type="text/javascript"&gt;
+    function doLoad() {
+      EmailTemplate.fetchWithParams(
+        'SELECT Id, Name FROM Account',
+        {'batchSize': 100},
+        'callback'
+      );
+    }
+  &lt;/script&gt;
+  &lt;body&gt;
+    &lt;div id="mainDiv"&gt;&lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-left">&copy; 2025 Makana Pharma Inc. All rights reserved.</div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        function launchApproved() {
+            PresentationPlayer.launchApprovedEmail();
+        }
+
+        function launchWithTemplates() {
+            var templates = document.getElementById('templateNames').value;
+            PresentationPlayer.launchEmails(templates);
+        }
+
+        function launchAllTemplates() {
+            PresentationPlayer.launchEmails('');
+        }
+    </script>
+</body>
+</html>

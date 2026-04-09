@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Listeners Demo</title>
+    <script src="../../shared/js/jquery.min.js"></script>
+    <style>
+        @import url('../../shared/fonts/montserrat.css');
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { width: 100%; height: 100vh; overflow: hidden; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; }
+        .slide { width: 100%; height: 100%; max-width: 2388px; max-height: 1668px; position: relative; background: white; overflow: hidden; border-radius: 12px; }
+        .content-container { position: relative; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; grid-template-areas: "header header" "left right"; height: 100%; padding: 40px; gap: 30px; }
+        .header { grid-area: header; display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 24px; font-weight: 600; color: #3a4674; }
+        .left-panel { grid-area: left; color: #333; padding-right: 20px; overflow-y: auto; }
+        .right-panel { grid-area: right; color: #333; overflow-y: auto; }
+        h2 { font-size: 22px; margin-bottom: 15px; font-weight: 600; color: #3a4674; }
+        h3 { font-size: 15px; margin-bottom: 10px; color: #3a4674; font-weight: 600; }
+        .section { margin-bottom: 25px; }
+        .description { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+        .code-block { background: #f8f9ff; border: 1px solid rgba(91,107,176,0.15); border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 12px; color: #333; margin: 8px 0; white-space: pre-wrap; }
+        .syntax-label { display: inline-block; background: #3a4674; color: white; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-bottom: 5px; font-weight: 600; }
+        .event-label { display: inline-block; background: #9370DB; color: white; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-bottom: 3px; font-weight: 600; }
+        .btn { display: inline-block; padding: 10px 20px; border-radius: 30px; border: none; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.3s ease; margin: 4px 4px 4px 0; }
+        .btn-primary { background: linear-gradient(135deg, #3a4674, #5b6bb0); color: white; }
+        .btn-secondary { background: linear-gradient(135deg, #66CDAA, #4db896); color: white; }
+        .btn-small { padding: 8px 16px; font-size: 11px; }
+        .note { background: linear-gradient(135deg, #f0f4ff, #fff); padding: 12px; border-radius: 8px; border-left: 4px solid #66CDAA; font-size: 12px; color: #555; margin: 10px 0; }
+        .results { background: #1e1e2e; color: #66CDAA; padding: 12px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 11px; min-height: 120px; margin: 10px 0; max-height: 300px; overflow-y: auto; }
+        .event-card { background: #f8f9ff; border: 1px solid rgba(91,107,176,0.15); border-radius: 8px; padding: 10px; margin: 6px 0; }
+        .event-card .name { font-weight: 600; color: #3a4674; font-size: 13px; }
+        .event-card .desc { font-size: 11px; color: #666; margin-top: 3px; }
+        .event-card .status { font-size: 10px; margin-top: 4px; }
+        .status-active { color: #66CDAA; font-weight: 600; }
+        .status-inactive { color: #aaa; }
+        .footer { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-between; padding: 15px 40px; z-index: 10; background: linear-gradient(to top, rgba(245,247,255,0.8), transparent); }
+        .footer-left { color: #777; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <div class="content-container">
+            <div class="header">
+                <div class="page-title">Event Listeners Demo</div>
+            </div>
+
+            <div class="left-panel">
+                <h2>registerEventListener</h2>
+                <p class="description">Registers a JavaScript function to handle a specific iOS event from the presentation player. Each event can have one handler at a time.</p>
+
+                <div class="section">
+                    <span class="syntax-label">SYNTAX</span>
+                    <div class="code-block">PresentationPlayer.registerEventListener(
+  iOS_event, handler
+)</div>
+                </div>
+
+                <h3>ALL 8 SUPPORTED EVENTS</h3>
+
+                <div class="event-card">
+                    <div class="name">cancelbuttonpress</div>
+                    <div class="desc">User tapped the Cancel button</div>
+                    <div class="status" id="status_cancel"><span class="status-inactive">Not registered</span></div>
+                    <button class="btn btn-small btn-primary" onclick="registerEvent('cancelbuttonpress')">Register</button>
+                </div>
+
+                <div class="event-card">
+                    <div class="name">pausebuttonpress</div>
+                    <div class="desc">User tapped the Pause button</div>
+                    <div class="status" id="status_pause"><span class="status-inactive">Not registered</span></div>
+                    <button class="btn btn-small btn-primary" onclick="registerEvent('pausebuttonpress')">Register</button>
+                </div>
+
+                <div class="event-card">
+                    <div class="name">playbuttonpress</div>
+                    <div class="desc">User tapped the Play button</div>
+                    <div class="status" id="status_play"><span class="status-inactive">Not registered</span></div>
+                    <button class="btn btn-small btn-primary" onclick="registerEvent('playbuttonpress')">Register</button>
+                </div>
+
+                <div class="event-card">
+                    <div class="name">returntovisitbuttonpress</div>
+                    <div class="desc">User tapped the Visit button (return to visit)</div>
+                    <div class="status" id="status_return"><span class="status-inactive">Not registered</span></div>
+                    <button class="btn btn-small btn-primary" onclick="registerEvent('returntovisitbuttonpress')">Register</button>
+                </div>
+
+                <div class="event-card">
+                    <div class="name">viewappearing</div>
+                    <div class="desc">Page is about to appear on screen</div>
+                    <div class="status" id="status_appearing"><span class="status-inactive">Not registered</span></div>
+                    <button class="btn btn-small btn-primary" onclick="registerEvent('viewappearing')">Register</button>
+                </div>
+
+                <div class="event-card">
+                    <div class="name">viewdisappearing</div>
+                    <div class="desc">Page is about to disappear from screen</div>
+                    <div class="status" id="status_disappearing"><span class="status-inactive">Not registered</span></div>
+                    <button class="btn btn-small btn-primary" onclick="registerEvent('viewdisappearing')">Register</button>
+                </div>
+
+                <div class="event-card">
+                    <div class="name">surveyflowjsonloaded</div>
+                    <div class="desc">Survey flow JSON has been loaded</div>
+                    <div class="status" id="status_surveyloaded"><span class="status-inactive">Not registered</span></div>
+                    <button class="btn btn-small btn-primary" onclick="registerEvent('surveyflowjsonloaded')">Register</button>
+                </div>
+
+                <div class="event-card">
+                    <div class="name">surveyflowjsonpassedtovisit</div>
+                    <div class="desc">Survey JSON was passed back to the visit</div>
+                    <div class="status" id="status_surveypassed"><span class="status-inactive">Not registered</span></div>
+                    <button class="btn btn-small btn-primary" onclick="registerEvent('surveyflowjsonpassedtovisit')">Register</button>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <h2>Common Patterns</h2>
+
+                <div class="section">
+                    <span class="event-label">PAGE LIFECYCLE</span>
+                    <div class="code-block">// Start tracking when page appears
+PresentationPlayer.registerEventListener(
+    'viewappearing', function() {
+        PresentationPlayer.startTrackingPage('myPage');
+    }
+);
+
+// Save state when page disappears
+PresentationPlayer.registerEventListener(
+    'viewdisappearing', function() {
+        PresentationPlayer.stopTrackingPage();
+        PresentationPlayer.saveState(
+            JSON.stringify(currentState)
+        );
+    }
+);</div>
+                </div>
+
+                <div class="section">
+                    <span class="event-label">DISMISS CONTROL</span>
+                    <div class="code-block">// Handle Visit button press with
+// long-running operations
+PresentationPlayer.registerEventListener(
+    'returntovisitbuttonpress', function() {
+        PresentationPlayer.disableDismiss();
+        // Do work (upsert, save state, etc.)
+        PresentationPlayer.upsert(
+            [record], 'callback'
+        );
+        PresentationPlayer.enableDismiss();
+    }
+);</div>
+                </div>
+
+                <div class="section">
+                    <button class="btn btn-secondary" onclick="registerAll()">Register All Events</button>
+                    <button class="btn btn-primary" onclick="simulateEvent()">Simulate Event</button>
+                </div>
+
+                <div class="note">
+                    <strong>Important:</strong> The <code>returntovisitbuttonpress</code> event is sent only to the currently open presentation. <code>viewappearing</code> fires each time the page comes into view, including returns from other pages.
+                </div>
+
+                <h3>EVENT LOG</h3>
+                <div class="results" id="eventLog">No events received yet.</div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-left">&copy; 2025 Makana Pharma Inc. All rights reserved.</div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var eventLog = [];
+        var registeredEvents = {};
+
+        var eventStatusMap = {
+            'cancelbuttonpress': 'status_cancel',
+            'pausebuttonpress': 'status_pause',
+            'playbuttonpress': 'status_play',
+            'returntovisitbuttonpress': 'status_return',
+            'viewappearing': 'status_appearing',
+            'viewdisappearing': 'status_disappearing',
+            'surveyflowjsonloaded': 'status_surveyloaded',
+            'surveyflowjsonpassedtovisit': 'status_surveypassed'
+        };
+
+        function registerEvent(eventName) {
+            PresentationPlayer.registerEventListener(eventName, function(data) {
+                logEvent(eventName, data);
+            });
+            registeredEvents[eventName] = true;
+            var statusEl = document.getElementById(eventStatusMap[eventName]);
+            if (statusEl) {
+                statusEl.innerHTML = '<span class="status-active">Registered</span>';
+            }
+            logEvent('SYSTEM', 'Registered listener for: ' + eventName);
+        }
+
+        function registerAll() {
+            var events = Object.keys(eventStatusMap);
+            for (var i = 0; i < events.length; i++) {
+                registerEvent(events[i]);
+            }
+        }
+
+        function simulateEvent() {
+            logEvent('viewappearing', '(simulated)');
+            logEvent('SYSTEM', 'Simulated viewappearing event for demo');
+        }
+
+        function logEvent(eventName, data) {
+            var time = new Date().toLocaleTimeString();
+            var entry = '[' + time + '] ' + eventName;
+            if (data) entry += ' -> ' + (typeof data === 'string' ? data : JSON.stringify(data));
+            eventLog.push(entry);
+            if (eventLog.length > 50) eventLog.shift();
+            document.getElementById('eventLog').textContent = eventLog.join('\n');
+            var logEl = document.getElementById('eventLog');
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+    </script>
+</body>
+</html>

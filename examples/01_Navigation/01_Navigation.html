@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation Demo - Page 1 of 3</title>
+    <script src="../../shared/js/jquery.min.js"></script>
+    <style>
+        @import url('../../shared/fonts/montserrat.css');
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { width: 100%; height: 100vh; overflow: hidden; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; }
+        .slide { width: 100%; height: 100%; max-width: 2388px; max-height: 1668px; position: relative; background: white; overflow: hidden; border-radius: 12px; }
+        .content-container { position: relative; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; grid-template-areas: "header header" "left right"; height: 100%; padding: 40px; gap: 30px; }
+        .header { grid-area: header; display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 24px; font-weight: 600; color: #3a4674; }
+        .page-indicator { display: flex; gap: 8px; align-items: center; }
+        .page-dot { width: 12px; height: 12px; border-radius: 50%; background: #ddd; }
+        .page-dot.active { background: #3a4674; width: 30px; border-radius: 6px; }
+        .left-panel { grid-area: left; color: #333; padding-right: 20px; overflow-y: auto; }
+        .right-panel { grid-area: right; color: #333; overflow-y: auto; }
+        h2 { font-size: 22px; margin-bottom: 15px; font-weight: 600; color: #3a4674; }
+        h3 { font-size: 15px; margin-bottom: 10px; color: #3a4674; font-weight: 600; }
+        .section { margin-bottom: 25px; }
+        .description { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+        .code-block { background: #f8f9ff; border: 1px solid rgba(91,107,176,0.15); border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 12px; color: #333; margin: 8px 0; white-space: pre-wrap; }
+        .syntax-label { display: inline-block; background: #3a4674; color: white; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-bottom: 5px; font-weight: 600; }
+        .btn { display: inline-block; padding: 12px 24px; border-radius: 30px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; margin: 5px 5px 5px 0; }
+        .btn-primary { background: linear-gradient(135deg, #3a4674, #5b6bb0); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(58,70,116,0.3); }
+        .btn-secondary { background: linear-gradient(135deg, #66CDAA, #4db896); color: white; }
+        .btn-disabled { background: #ccc; color: #888; cursor: not-allowed; }
+        .note { background: linear-gradient(135deg, #f0f4ff, #fff); padding: 12px; border-radius: 8px; border-left: 4px solid #66CDAA; font-size: 12px; color: #555; margin: 10px 0; }
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #f0f4ff, #e8ecff); padding: 15px 20px; border-radius: 12px; margin: 15px 0; }
+        .nav-bar .current { font-size: 14px; font-weight: 600; color: #3a4674; }
+        .footer { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-between; padding: 15px 40px; z-index: 10; background: linear-gradient(to top, rgba(245,247,255,0.8), transparent); }
+        .footer-left { color: #777; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <div class="content-container">
+            <div class="header">
+                <div class="page-title">Navigation Demo</div>
+                <div class="page-indicator">
+                    <div class="page-dot active"></div>
+                    <div class="page-dot"></div>
+                    <div class="page-dot"></div>
+                </div>
+            </div>
+
+            <div class="left-panel">
+                <h2>Page 1 of 3: goNextPage / goPreviousPage</h2>
+                <p class="description">This is a 3-slide mini presentation demonstrating LSC navigation. Each slide is a separate ZIP/HTML file. Use the buttons below to navigate between them.</p>
+
+                <div class="nav-bar">
+                    <button class="btn btn-disabled" disabled>&larr; Previous (first page)</button>
+                    <span class="current">Page 1 of 3</span>
+                    <button class="btn btn-primary" onclick="goNext()">Next Page &rarr;</button>
+                </div>
+
+                <div class="section">
+                    <span class="syntax-label">SYNTAX</span>
+                    <div class="code-block">PresentationPlayer.goNextPage()
+PresentationPlayer.goPreviousPage()</div>
+                    <p class="description">Navigates to the next or previous page in the presentation. Does nothing if already on the first/last page. Available on both desktop and mobile.</p>
+                </div>
+
+                <div class="section">
+                    <h3>HOW IT WORKS</h3>
+                    <div class="code-block">// Each presentation page = one ZIP file
+// The player maintains the page order:
+//   01_Navigation.zip      (this page)
+//   02_Navigation_PageB.zip (page 2)
+//   03_Navigation_PageC.zip (page 3)
+//
+// goNextPage() moves forward in order
+// goPreviousPage() moves backward
+//
+// Tap "Next Page" above to see it in action!</div>
+                </div>
+
+                <div class="note">
+                    <strong>Desktop + Mobile:</strong> <code>goNextPage</code>, <code>goPreviousPage</code>, and <code>goToSlide</code> are the only navigation functions available on desktop. All other PresentationPlayer functions are mobile only.
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <h2>goToSlide (Jump to Any Page)</h2>
+                <p class="description">Jump directly to any page by Page ID, Page Name, or Source System Identifier. Try jumping to Page 3 from here.</p>
+
+                <div class="section">
+                    <span class="syntax-label">SYNTAX</span>
+                    <div class="code-block">PresentationPlayer.gotoSlide(
+  identifier, slideName, animation
+)
+
+// identifier: PageId, PageName, or
+//             SourceSystemIdentifier
+// slideName:  HTML filename inside the ZIP
+// animation:  'noanimation' | 'swipeleft'
+//             | 'swiperight' | null</div>
+                </div>
+
+                <div class="section">
+                    <h3>JUMP TO PAGE 3</h3>
+                    <p class="description">These buttons call goToSlide with different animation options to jump directly to Page 3, skipping Page 2.</p>
+                    <button class="btn btn-primary" onclick="jumpToPage3('noanimation')">Jump (no animation)</button>
+                    <button class="btn btn-secondary" onclick="jumpToPage3('swipeleft')">Jump (swipe left)</button>
+                    <button class="btn btn-secondary" onclick="jumpToPage3('swiperight')">Jump (swipe right)</button>
+                </div>
+
+                <div class="section">
+                    <h3>GETTING THE PAGE ID</h3>
+                    <div class="code-block">var configData;
+document.addEventListener(
+    'PresentationDOMContentLoaded',
+    function(event) {
+        configData = event.data;
+        // Get page IDs from the JSON:
+        var pages = configData.presentations[
+            configData.presentationIndex
+        ].Pages;
+
+        // pages[0].id = this page (Page 1)
+        // pages[1].id = Page 2
+        // pages[2].id = Page 3
+    }
+);</div>
+                </div>
+
+                <div class="note">
+                    <strong>Tip:</strong> You can also use the Mustache triple-brace shorthand (<code id="tipCode"></code>) to get the full JSON inline at render time.
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">&copy; 2025 Makana Pharma Inc. All rights reserved.</div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // Populate Mustache syntax via JS to prevent the player from processing it
+        var ob = String.fromCharCode(123);
+        var cb = String.fromCharCode(125);
+        document.getElementById('tipCode').textContent = 'var configData = ' + ob+ob+ob + '.' + cb+cb+cb + ';';
+
+        function goNext() {
+            PresentationPlayer.goNextPage();
+        }
+
+        function jumpToPage3(animation) {
+            PresentationPlayer.gotoSlide('Navigation PageC', '01_Navigation_PageC.html', animation);
+        }
+    </script>
+</body>
+</html>

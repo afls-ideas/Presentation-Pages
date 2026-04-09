@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerts &amp; Logging Demo</title>
+    <script src="../../shared/js/jquery.min.js"></script>
+    <style>
+        @import url('../../shared/fonts/montserrat.css');
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { width: 100%; height: 100vh; overflow: hidden; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; }
+        .slide { width: 100%; height: 100%; max-width: 2388px; max-height: 1668px; position: relative; background: white; overflow: hidden; border-radius: 12px; }
+        .content-container { position: relative; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; grid-template-areas: "header header" "left right"; height: 100%; padding: 40px; gap: 30px; }
+        .header { grid-area: header; display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 24px; font-weight: 600; color: #3a4674; }
+        .left-panel { grid-area: left; color: #333; padding-right: 20px; overflow-y: auto; }
+        .right-panel { grid-area: right; color: #333; overflow-y: auto; }
+        h2 { font-size: 22px; margin-bottom: 15px; font-weight: 600; color: #3a4674; }
+        h3 { font-size: 15px; margin-bottom: 10px; color: #3a4674; font-weight: 600; }
+        .section { margin-bottom: 25px; }
+        .description { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+        .code-block { background: #f8f9ff; border: 1px solid rgba(91,107,176,0.15); border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 12px; color: #333; margin: 8px 0; white-space: pre-wrap; }
+        .syntax-label { display: inline-block; background: #3a4674; color: white; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-bottom: 5px; font-weight: 600; }
+        .btn { display: inline-block; padding: 12px 24px; border-radius: 30px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; margin: 5px 5px 5px 0; }
+        .btn-primary { background: linear-gradient(135deg, #3a4674, #5b6bb0); color: white; }
+        .btn-warning { background: linear-gradient(135deg, #FF9800, #FFA726); color: white; }
+        .note { background: linear-gradient(135deg, #f0f4ff, #fff); padding: 12px; border-radius: 8px; border-left: 4px solid #66CDAA; font-size: 12px; color: #555; margin: 10px 0; }
+        .results { background: #1e1e2e; color: #66CDAA; padding: 12px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; min-height: 80px; margin: 10px 0; }
+        input[type="text"] { width: 100%; padding: 10px 12px; border: 1px solid rgba(91,107,176,0.2); border-radius: 8px; font-size: 14px; margin: 5px 0; }
+        label { font-size: 12px; font-weight: 600; color: #3a4674; display: block; margin-top: 10px; }
+        .footer { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-between; padding: 15px 40px; z-index: 10; background: linear-gradient(to top, rgba(245,247,255,0.8), transparent); }
+        .footer-left { color: #777; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <div class="content-container">
+            <div class="header">
+                <div class="page-title">Alerts &amp; Logging Demo</div>
+            </div>
+
+            <div class="left-panel">
+                <h2>alert</h2>
+                <p class="description">Opens a native alert dialog on the user's mobile device with the specified message. Useful for confirming actions or displaying important information.</p>
+
+                <div class="section">
+                    <span class="syntax-label">SYNTAX</span>
+                    <div class="code-block">PresentationPlayer.alert(message)</div>
+                </div>
+
+                <div class="section">
+                    <label>Alert Message</label>
+                    <input type="text" id="alertMsg" placeholder="Enter your alert message" value="Visit created successfully!">
+                    <br><br>
+                    <button class="btn btn-primary" onclick="showAlert()">Show Alert</button>
+                </div>
+
+                <div class="section">
+                    <h3>COMMON USAGE</h3>
+                    <div class="code-block">// After creating a visit
+function callbackMethod(data) {
+    console.log(data);
+    PresentationPlayer.alert(
+        JSON.stringify(data)
+    );
+}
+
+// After upserting records
+function upsertCallback(data) {
+    if (data.state === 'success') {
+        PresentationPlayer.alert('Record saved!');
+    } else {
+        PresentationPlayer.alert(
+            data.message + '\n' + data.code
+        );
+    }
+}</div>
+                </div>
+
+                <div class="note">
+                    <strong>Mobile only.</strong> This function opens a native iOS alert dialog. It is not available on desktop.
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <h2>logError</h2>
+                <p class="description">Logs error messages within the presentation player. Error messages are tracked per individual presentation page. Maximum 10 error messages per page.</p>
+
+                <div class="section">
+                    <span class="syntax-label">SYNTAX</span>
+                    <div class="code-block">PresentationPlayer.logError(errorMessage)</div>
+                </div>
+
+                <div class="section">
+                    <label>Error Message</label>
+                    <input type="text" id="errorMsg" placeholder="Enter error message" value="Failed to load patient data">
+                    <br><br>
+                    <button class="btn btn-warning" onclick="logError()">Log Error</button>
+                </div>
+
+                <div class="section">
+                    <h3>USAGE IN ERROR HANDLING</h3>
+                    <div class="code-block">function getAccountsCallback(data) {
+    if (data.state === 'success') {
+        // Process records
+    } else {
+        PresentationPlayer.logError(
+            'Query failed: ' + data.message
+        );
+        PresentationPlayer.alert(
+            'An error occurred. Please try again.'
+        );
+    }
+}</div>
+                </div>
+
+                <div class="note">
+                    <strong>Limits:</strong> Only 10 error messages are logged per presentation page. Errors are tracked and logged for each individual page. In the mobile app, these events appear in the logs.
+                </div>
+
+                <h3>ERROR LOG (Local)</h3>
+                <div class="results" id="errorLog">No errors logged yet.</div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-left">&copy; 2025 Makana Pharma Inc. All rights reserved.</div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var errorCount = 0;
+        var errorEntries = [];
+
+        function showAlert() {
+            var msg = document.getElementById('alertMsg').value;
+            PresentationPlayer.alert(msg);
+        }
+
+        function logError() {
+            var msg = document.getElementById('errorMsg').value;
+            PresentationPlayer.logError(msg);
+            errorCount++;
+            errorEntries.push('#' + errorCount + ' [' + new Date().toLocaleTimeString() + '] ' + msg);
+            document.getElementById('errorLog').textContent =
+                'Errors logged: ' + errorCount + '/10\n' + errorEntries.join('\n');
+        }
+    </script>
+</body>
+</html>

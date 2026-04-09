@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swipe Region Control Demo</title>
+    <script src="../../shared/js/jquery.min.js"></script>
+    <style>
+        @import url('../../shared/fonts/montserrat.css');
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { width: 100%; height: 100vh; overflow: hidden; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; }
+        .slide { width: 100%; height: 100%; max-width: 2388px; max-height: 1668px; position: relative; background: white; overflow: hidden; border-radius: 12px; }
+        .content-container { position: relative; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; grid-template-areas: "header header" "left right"; height: 100%; padding: 40px; gap: 30px; }
+        .header { grid-area: header; display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 24px; font-weight: 600; color: #3a4674; }
+        .left-panel { grid-area: left; color: #333; padding-right: 20px; overflow-y: auto; }
+        .right-panel { grid-area: right; color: #333; overflow-y: auto; }
+        h2 { font-size: 22px; margin-bottom: 15px; font-weight: 600; color: #3a4674; }
+        h3 { font-size: 15px; margin-bottom: 10px; color: #3a4674; font-weight: 600; }
+        .section { margin-bottom: 25px; }
+        .description { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+        .code-block { background: #f8f9ff; border: 1px solid rgba(91,107,176,0.15); border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 12px; color: #333; margin: 8px 0; white-space: pre-wrap; }
+        .syntax-label { display: inline-block; background: #3a4674; color: white; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-bottom: 5px; font-weight: 600; }
+        .btn { display: inline-block; padding: 12px 24px; border-radius: 30px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; margin: 5px 5px 5px 0; }
+        .btn-primary { background: linear-gradient(135deg, #3a4674, #5b6bb0); color: white; }
+        .btn-danger { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; }
+        .btn-secondary { background: linear-gradient(135deg, #66CDAA, #4db896); color: white; }
+        .note { background: linear-gradient(135deg, #f0f4ff, #fff); padding: 12px; border-radius: 8px; border-left: 4px solid #66CDAA; font-size: 12px; color: #555; margin: 10px 0; }
+        .results { background: #1e1e2e; color: #66CDAA; padding: 12px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; min-height: 60px; margin: 10px 0; }
+        input[type="text"], input[type="number"] { padding: 10px 12px; border: 1px solid rgba(91,107,176,0.2); border-radius: 8px; font-size: 13px; margin: 5px 0; }
+        label { font-size: 12px; font-weight: 600; color: #3a4674; display: block; margin-top: 10px; }
+        .input-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+        .input-row .input-group { flex: 1; min-width: 80px; }
+        .input-row input { width: 100%; }
+        .demo-area { position: relative; width: 100%; height: 200px; background: #f0f4ff; border: 2px dashed rgba(91,107,176,0.3); border-radius: 12px; margin: 10px 0; overflow: hidden; }
+        .no-swipe-overlay { position: absolute; background: rgba(231, 76, 60, 0.15); border: 2px solid rgba(231, 76, 60, 0.5); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #e74c3c; pointer-events: none; }
+        .region-tag { position: absolute; top: 2px; left: 4px; font-size: 9px; background: #e74c3c; color: white; padding: 1px 5px; border-radius: 3px; }
+        .footer { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-between; padding: 15px 40px; z-index: 10; background: linear-gradient(to top, rgba(245,247,255,0.8), transparent); }
+        .footer-left { color: #777; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <div class="content-container">
+            <div class="header">
+                <div class="page-title">Swipe Region Control Demo</div>
+            </div>
+
+            <div class="left-panel">
+                <h2>defineNoSwipeRegion</h2>
+                <p class="description">Creates a rectangular region where swipe gestures are disabled. Useful for interactive elements like carousels, sliders, or drawing areas.</p>
+
+                <div class="section">
+                    <span class="syntax-label">SYNTAX</span>
+                    <div class="code-block">PresentationPlayer.defineNoSwipeRegion(
+  regionId, x, y, width, height
+)</div>
+                </div>
+
+                <div class="section">
+                    <label>Region ID</label>
+                    <input type="text" id="regionId" placeholder="e.g., carousel" value="interactive_area" style="width:100%">
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>X</label>
+                            <input type="number" id="regionX" value="50">
+                        </div>
+                        <div class="input-group">
+                            <label>Y</label>
+                            <input type="number" id="regionY" value="30">
+                        </div>
+                        <div class="input-group">
+                            <label>Width</label>
+                            <input type="number" id="regionW" value="300">
+                        </div>
+                        <div class="input-group">
+                            <label>Height</label>
+                            <input type="number" id="regionH" value="140">
+                        </div>
+                    </div>
+                    <br>
+                    <button class="btn btn-primary" onclick="defineRegion()">Define No-Swipe Region</button>
+                </div>
+
+                <div class="section">
+                    <h3>QUICK PRESETS</h3>
+                    <button class="btn btn-secondary" onclick="definePreset('carousel', 20, 20, 360, 160)">Carousel Area</button>
+                    <button class="btn btn-secondary" onclick="definePreset('sidebar', 0, 0, 80, 200)">Left Sidebar</button>
+                    <button class="btn btn-secondary" onclick="definePreset('canvas', 50, 40, 300, 120)">Drawing Canvas</button>
+                </div>
+
+                <div class="note">
+                    <strong>Mobile only.</strong> Coordinates are in pixels relative to the presentation viewport. Regions persist until explicitly destroyed or the page unloads.
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <h2>destroyNoSwipeRegion</h2>
+                <p class="description">Removes a previously defined no-swipe region, re-enabling swipe gestures in that area.</p>
+
+                <div class="section">
+                    <span class="syntax-label">SYNTAX</span>
+                    <div class="code-block">PresentationPlayer.destroyNoSwipeRegion(regionId)</div>
+                </div>
+
+                <div class="section">
+                    <label>Region ID to Destroy</label>
+                    <input type="text" id="destroyId" placeholder="e.g., carousel" value="interactive_area" style="width:100%">
+                    <br><br>
+                    <button class="btn btn-danger" onclick="destroyRegion()">Destroy Region</button>
+                    <button class="btn btn-danger" onclick="destroyAll()">Destroy All Regions</button>
+                </div>
+
+                <h3>VISUAL PREVIEW</h3>
+                <p class="description">Red zones show active no-swipe regions. Swipe gestures inside these areas will not trigger page navigation.</p>
+                <div class="demo-area" id="demoArea"></div>
+
+                <h3>ACTIVE REGIONS LOG</h3>
+                <div class="results" id="regionLog">No regions defined.</div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-left">&copy; 2025 Makana Pharma Inc. All rights reserved.</div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var regions = {};
+
+        function defineRegion() {
+            var id = document.getElementById('regionId').value;
+            var x = parseInt(document.getElementById('regionX').value);
+            var y = parseInt(document.getElementById('regionY').value);
+            var w = parseInt(document.getElementById('regionW').value);
+            var h = parseInt(document.getElementById('regionH').value);
+            if (!id) return;
+            PresentationPlayer.defineNoSwipeRegion(id, x, y, w, h);
+            regions[id] = {x: x, y: y, width: w, height: h};
+            updateDisplay();
+        }
+
+        function definePreset(id, x, y, w, h) {
+            document.getElementById('regionId').value = id;
+            document.getElementById('regionX').value = x;
+            document.getElementById('regionY').value = y;
+            document.getElementById('regionW').value = w;
+            document.getElementById('regionH').value = h;
+            PresentationPlayer.defineNoSwipeRegion(id, x, y, w, h);
+            regions[id] = {x: x, y: y, width: w, height: h};
+            updateDisplay();
+        }
+
+        function destroyRegion() {
+            var id = document.getElementById('destroyId').value;
+            if (!id) return;
+            PresentationPlayer.destroyNoSwipeRegion(id);
+            delete regions[id];
+            updateDisplay();
+        }
+
+        function destroyAll() {
+            for (var id in regions) {
+                PresentationPlayer.destroyNoSwipeRegion(id);
+            }
+            regions = {};
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            var area = document.getElementById('demoArea');
+            area.innerHTML = '';
+            var log = [];
+            var areaW = area.offsetWidth;
+            var areaH = area.offsetHeight;
+            for (var id in regions) {
+                var r = regions[id];
+                var div = document.createElement('div');
+                div.className = 'no-swipe-overlay';
+                var scaleX = areaW / 400;
+                var scaleY = areaH / 200;
+                div.style.left = (r.x * scaleX) + 'px';
+                div.style.top = (r.y * scaleY) + 'px';
+                div.style.width = (r.width * scaleX) + 'px';
+                div.style.height = (r.height * scaleY) + 'px';
+                div.innerHTML = '<span class="region-tag">' + id + '</span>NO SWIPE';
+                area.appendChild(div);
+                log.push(id + ': (' + r.x + ',' + r.y + ') ' + r.width + 'x' + r.height);
+            }
+            document.getElementById('regionLog').textContent =
+                log.length ? 'Active regions:\n' + log.join('\n') : 'No regions defined.';
+        }
+    </script>
+</body>
+</html>

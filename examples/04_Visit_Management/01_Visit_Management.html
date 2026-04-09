@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visit Management Demo</title>
+    <script src="../../shared/js/jquery.min.js"></script>
+    <style>
+        @import url('../../shared/fonts/montserrat.css');
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { width: 100%; height: 100vh; overflow: hidden; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; }
+        .slide { width: 100%; height: 100%; max-width: 2388px; max-height: 1668px; position: relative; background: white; overflow: hidden; border-radius: 12px; }
+        .content-container { position: relative; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; grid-template-areas: "header header" "left right"; height: 100%; padding: 40px; gap: 30px; }
+        .header { grid-area: header; display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 24px; font-weight: 600; color: #3a4674; }
+        .left-panel { grid-area: left; color: #333; padding-right: 20px; overflow-y: auto; }
+        .right-panel { grid-area: right; color: #333; overflow-y: auto; }
+        h2 { font-size: 22px; margin-bottom: 15px; font-weight: 600; color: #3a4674; }
+        h3 { font-size: 15px; margin-bottom: 10px; color: #3a4674; font-weight: 600; }
+        .section { margin-bottom: 20px; }
+        .description { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+        .code-block { background: #f8f9ff; border: 1px solid rgba(91,107,176,0.15); border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 11px; color: #333; margin: 8px 0; white-space: pre-wrap; }
+        .syntax-label { display: inline-block; background: #3a4674; color: white; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-bottom: 5px; font-weight: 600; }
+        .btn { display: inline-block; padding: 12px 24px; border-radius: 30px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; margin: 5px 5px 5px 0; }
+        .btn-primary { background: linear-gradient(135deg, #3a4674, #5b6bb0); color: white; }
+        .btn-positive { background: linear-gradient(135deg, #4CAF50, #66BB6A); color: white; }
+        .btn-negative { background: linear-gradient(135deg, #f44336, #ef5350); color: white; }
+        .btn-neutral { background: linear-gradient(135deg, #FF9800, #FFA726); color: white; }
+        .btn-reset { background: linear-gradient(135deg, #9E9E9E, #BDBDBD); color: white; }
+        .note { background: linear-gradient(135deg, #f0f4ff, #fff); padding: 12px; border-radius: 8px; border-left: 4px solid #66CDAA; font-size: 12px; color: #555; margin: 10px 0; }
+        .results { background: #1e1e2e; color: #66CDAA; padding: 12px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 11px; min-height: 60px; margin: 10px 0; }
+        .feedback-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .footer { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-between; padding: 15px 40px; z-index: 10; background: linear-gradient(to top, rgba(245,247,255,0.8), transparent); }
+        .footer-left { color: #777; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <div class="content-container">
+            <div class="header">
+                <div class="page-title">Visit Management Demo</div>
+            </div>
+
+            <div class="left-panel">
+                <h2>createVisit</h2>
+                <p class="description">Creates a visit for the selected attendees and returns the result to a callback. Salesforce applies all configured visit validations. Invoke only once per presentation session.</p>
+
+                <div class="section">
+                    <span class="syntax-label">SYNTAX</span>
+                    <div class="code-block">PresentationPlayer.createVisit(callbackMethod)</div>
+                </div>
+
+                <div class="section">
+                    <button class="btn btn-primary" onclick="doCreateVisit()">Create Visit</button>
+                </div>
+
+                <div class="section">
+                    <h3>SUCCESS RESPONSE</h3>
+                    <div class="code-block">{"state":"success", "id": "&lt;parent_visit_uid&gt;"}</div>
+                </div>
+
+                <div class="section">
+                    <h3>ERROR RESPONSE</h3>
+                    <div class="code-block">{"state":"error", "errorMessage": "&lt;error&gt;", "id": "&lt;optional_id_of_previously_created_visit&gt;"}</div>
+                </div>
+
+                <div class="note">
+                    <strong>Related records created:</strong> Provider visit, Provider visit product detailing, Provider visit detailing product message, Presentation forum, Presentation click stream entry.
+                </div>
+
+                <div class="note">
+                    <strong>Errors occur when:</strong> Validation rules fail, a visit was already created this session, the player is opened for an existing visit, or the player is in an unrelated context.
+                </div>
+
+                <h3>RESULT</h3>
+                <div class="results" id="visitResult">No visit created yet.</div>
+            </div>
+
+            <div class="right-panel">
+                <h2>updateFeedback</h2>
+                <p class="description">Sets the feedback/reaction from the healthcare professional (HCP) to the specified type during presentations. Updates the related provider visit detailing product message record.</p>
+
+                <div class="section">
+                    <span class="syntax-label">SYNTAX</span>
+                    <div class="code-block">PresentationPlayer.updateFeedback(type)
+// type: 'Positive', 'Negative', 'Neutral', or null</div>
+                </div>
+
+                <div class="feedback-grid">
+                    <button class="btn btn-positive" onclick="setFeedback('Positive')">Positive</button>
+                    <button class="btn btn-negative" onclick="setFeedback('Negative')">Negative</button>
+                    <button class="btn btn-neutral" onclick="setFeedback('Neutral')">Neutral</button>
+                    <button class="btn btn-reset" onclick="setFeedback(null)">Clear (null)</button>
+                </div>
+
+                <div class="section">
+                    <h3>INLINE USAGE</h3>
+                    <div class="code-block">&lt;a href="javascript:PresentationPlayer.updateFeedback('Positive');"&gt;
+  I like the presentation
+&lt;/a&gt;</div>
+                </div>
+
+                <div class="note">
+                    <strong>Supported values:</strong> <code>Positive</code>, <code>Negative</code>, <code>Neutral</code>, and <code>null</code> (clears the feedback).
+                </div>
+
+                <h3>CURRENT FEEDBACK</h3>
+                <div class="results" id="feedbackResult">No feedback set.</div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-left">&copy; 2025 Makana Pharma Inc. All rights reserved.</div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        function doCreateVisit() {
+            PresentationPlayer.createVisit('onVisitCreated');
+        }
+
+        function onVisitCreated(data) {
+            var el = document.getElementById('visitResult');
+            el.textContent = JSON.stringify(data, null, 2);
+        }
+
+        function setFeedback(type) {
+            PresentationPlayer.updateFeedback(type);
+            document.getElementById('feedbackResult').textContent =
+                'Feedback set to: ' + (type === null ? 'null (cleared)' : type);
+        }
+    </script>
+</body>
+</html>

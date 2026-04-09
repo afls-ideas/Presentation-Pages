@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking Demo</title>
+    <script src="../../shared/js/jquery.min.js"></script>
+    <style>
+        @import url('../../shared/fonts/montserrat.css');
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { width: 100%; height: 100vh; overflow: hidden; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; }
+        .slide { width: 100%; height: 100%; max-width: 2388px; max-height: 1668px; position: relative; background: white; overflow: hidden; border-radius: 12px; }
+        .content-container { position: relative; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; grid-template-areas: "header header" "left right"; height: 100%; padding: 40px; gap: 30px; }
+        .header { grid-area: header; display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 24px; font-weight: 600; color: #3a4674; }
+        .left-panel { grid-area: left; color: #333; padding-right: 20px; overflow-y: auto; }
+        .right-panel { grid-area: right; color: #333; overflow-y: auto; }
+        h2 { font-size: 22px; margin-bottom: 15px; font-weight: 600; color: #3a4674; }
+        h3 { font-size: 15px; margin-bottom: 10px; color: #3a4674; font-weight: 600; }
+        .section { margin-bottom: 25px; }
+        .description { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+        .code-block { background: #f8f9ff; border: 1px solid rgba(91,107,176,0.15); border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 11px; color: #333; margin: 8px 0; white-space: pre-wrap; }
+        .syntax-label { display: inline-block; background: #3a4674; color: white; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-bottom: 5px; font-weight: 600; }
+        .btn { display: inline-block; padding: 12px 24px; border-radius: 30px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; margin: 5px 5px 5px 0; }
+        .btn-start { background: linear-gradient(135deg, #4CAF50, #66BB6A); color: white; }
+        .btn-stop { background: linear-gradient(135deg, #f44336, #ef5350); color: white; }
+        .note { background: linear-gradient(135deg, #f0f4ff, #fff); padding: 12px; border-radius: 8px; border-left: 4px solid #66CDAA; font-size: 12px; color: #555; margin: 10px 0; }
+        .results { background: #1e1e2e; color: #66CDAA; padding: 12px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 11px; min-height: 80px; margin: 10px 0; }
+        input[type="text"] { width: 100%; padding: 8px 12px; border: 1px solid rgba(91,107,176,0.2); border-radius: 8px; font-size: 13px; margin: 5px 0; }
+        label { font-size: 12px; font-weight: 600; color: #3a4674; display: block; margin-top: 10px; }
+        .status-indicator { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+        .status-active { background-color: #4CAF50; box-shadow: 0 0 8px rgba(76,175,80,0.5); }
+        .status-inactive { background-color: #9E9E9E; }
+        .footer { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-between; padding: 15px 40px; z-index: 10; background: linear-gradient(to top, rgba(245,247,255,0.8), transparent); }
+        .footer-left { color: #777; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <div class="content-container">
+            <div class="header">
+                <div class="page-title">Tracking Demo</div>
+            </div>
+
+            <div class="left-panel">
+                <h2>startTrackingPage</h2>
+                <p class="description">Starts tracking presentation metrics in a new presentation click stream entry record for the specified page. Accepts any string as the ID for the current slide.</p>
+
+                <div class="section">
+                    <span class="syntax-label">SYNTAX</span>
+                    <div class="code-block">PresentationPlayer.startTrackingPage(pageid)</div>
+                </div>
+
+                <div class="section">
+                    <label>Page ID</label>
+                    <input type="text" id="pageId" placeholder="e.g., slide_01_intro" value="slide_01_intro">
+                    <br><br>
+                    <button class="btn btn-start" onclick="startTracking()">
+                        <span class="status-indicator status-active"></span> Start Tracking
+                    </button>
+                </div>
+
+                <h2 style="margin-top: 30px;">stopTrackingPage</h2>
+                <p class="description">Stops tracking presentation metrics for the current slide.</p>
+
+                <div class="section">
+                    <span class="syntax-label">SYNTAX</span>
+                    <div class="code-block">PresentationPlayer.stopTrackingPage()</div>
+                    <br>
+                    <button class="btn btn-stop" onclick="stopTracking()">
+                        <span class="status-indicator status-inactive"></span> Stop Tracking
+                    </button>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <h2>Typical Usage Pattern</h2>
+
+                <div class="section">
+                    <h3>AUTO-TRACK WITH EVENT LISTENERS</h3>
+                    <div class="code-block">// Start tracking when page appears
+PresentationPlayer.registerEventListener(
+  'viewappearing',
+  function() {
+    PresentationPlayer.startTrackingPage('my_page_id');
+  }
+);
+
+// Stop tracking when page disappears
+PresentationPlayer.registerEventListener(
+  'viewdisappearing',
+  function() {
+    PresentationPlayer.stopTrackingPage();
+  }
+);
+
+// Pause/resume with player buttons
+PresentationPlayer.registerEventListener(
+  'pausebuttonpress',
+  function() {
+    PresentationPlayer.stopTrackingPage();
+  }
+);
+
+PresentationPlayer.registerEventListener(
+  'playbuttonpress',
+  function() {
+    PresentationPlayer.startTrackingPage('my_page_id');
+  }
+);</div>
+                </div>
+
+                <div class="note">
+                    <strong>Click Stream Entry:</strong> Each call to <code>startTrackingPage</code> creates a new presentation click stream entry record. The <code>pageid</code> argument can be any string identifier for the current slide.
+                </div>
+
+                <h3>TRACKING LOG</h3>
+                <div class="results" id="trackingLog">No tracking events yet.</div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-left">&copy; 2025 Makana Pharma Inc. All rights reserved.</div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var trackingActive = false;
+        var logEntries = [];
+
+        function addLog(msg) {
+            logEntries.push(new Date().toLocaleTimeString() + ' - ' + msg);
+            document.getElementById('trackingLog').textContent = logEntries.join('\n');
+        }
+
+        function startTracking() {
+            var pageId = document.getElementById('pageId').value || 'default_page';
+            PresentationPlayer.startTrackingPage(pageId);
+            trackingActive = true;
+            addLog('Started tracking: ' + pageId);
+        }
+
+        function stopTracking() {
+            PresentationPlayer.stopTrackingPage();
+            trackingActive = false;
+            addLog('Stopped tracking');
+        }
+    </script>
+</body>
+</html>

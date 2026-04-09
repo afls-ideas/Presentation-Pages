@@ -1,0 +1,6 @@
+*.pdf
+input/
+shared/
+slides/
+.cursor/
+.claude/

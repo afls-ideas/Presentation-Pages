@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Additional Content Demo</title>
+    <script src="../../shared/js/jquery.min.js"></script>
+    <style>
+        @import url('../../shared/fonts/montserrat.css');
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { width: 100%; height: 100vh; overflow: hidden; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; }
+        .slide { width: 100%; height: 100%; max-width: 2388px; max-height: 1668px; position: relative; background: white; overflow: hidden; border-radius: 12px; }
+        .content-container { position: relative; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; grid-template-areas: "header header" "left right"; height: 100%; padding: 40px; gap: 30px; }
+        .header { grid-area: header; display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 24px; font-weight: 600; color: #3a4674; }
+        .left-panel { grid-area: left; color: #333; padding-right: 20px; overflow-y: auto; }
+        .right-panel { grid-area: right; color: #333; overflow-y: auto; }
+        h2 { font-size: 22px; margin-bottom: 15px; font-weight: 600; color: #3a4674; }
+        h3 { font-size: 15px; margin-bottom: 10px; color: #3a4674; font-weight: 600; }
+        .section { margin-bottom: 25px; }
+        .description { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+        .code-block { background: #f8f9ff; border: 1px solid rgba(91,107,176,0.15); border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 12px; color: #333; margin: 8px 0; white-space: pre-wrap; }
+        .syntax-label { display: inline-block; background: #3a4674; color: white; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-bottom: 5px; font-weight: 600; }
+        .file-label { display: inline-block; background: #9370DB; color: white; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-bottom: 5px; font-weight: 600; }
+        .note { background: linear-gradient(135deg, #f0f4ff, #fff); padding: 12px; border-radius: 8px; border-left: 4px solid #66CDAA; font-size: 12px; color: #555; margin: 10px 0; }
+        .content-card { background: #f8f9ff; border: 1px solid rgba(91,107,176,0.15); border-radius: 10px; padding: 15px; margin: 10px 0; display: flex; align-items: center; gap: 15px; transition: all 0.3s ease; cursor: pointer; }
+        .content-card:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(58,70,116,0.1); }
+        .card-icon { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: white; flex-shrink: 0; }
+        .icon-pdf { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .icon-video { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .icon-html { background: linear-gradient(135deg, #f39c12, #e67e22); }
+        .icon-link { background: linear-gradient(135deg, #66CDAA, #4db896); }
+        .card-info { flex: 1; }
+        .card-title { font-size: 14px; font-weight: 600; color: #3a4674; }
+        .card-desc { font-size: 11px; color: #777; margin-top: 3px; }
+        .card-file { font-size: 10px; color: #9370DB; font-family: 'Courier New', monospace; margin-top: 3px; }
+        .zip-tree { background: #1e1e2e; color: #66CDAA; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.8; margin: 10px 0; }
+        .zip-tree .folder { color: #5b6bb0; }
+        .zip-tree .additional { color: #FF9800; }
+        .zip-tree .required { color: #e74c3c; }
+        .footer { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-between; padding: 15px 40px; z-index: 10; background: linear-gradient(to top, rgba(245,247,255,0.8), transparent); }
+        .footer-left { color: #777; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <div class="content-container">
+            <div class="header">
+                <div class="page-title">Additional Content Demo</div>
+            </div>
+
+            <div class="left-panel">
+                <h2>Additional Content Types</h2>
+                <p class="description">Include PDFs, videos, iFrames, and more in your presentation ZIP. Files prefixed with <code>isadditionalcontent_</code> are accessible from your HTML page.</p>
+
+                <div class="content-card" onclick="openPDF()">
+                    <div class="card-icon icon-pdf">PDF</div>
+                    <div class="card-info">
+                        <div class="card-title">PDF Documents</div>
+                        <div class="card-desc">Clinical studies, brochures, data sheets</div>
+                        <div class="card-file">isadditionalcontent_study.pdf</div>
+                    </div>
+                </div>
+
+                <div class="content-card" onclick="openVideo()">
+                    <div class="card-icon icon-video">MP4</div>
+                    <div class="card-info">
+                        <div class="card-title">Videos</div>
+                        <div class="card-desc">Product demos, MOA animations (MP4, MOV, M4V)</div>
+                        <div class="card-file">isadditionalcontent_demo.mp4</div>
+                    </div>
+                </div>
+
+                <div class="content-card" onclick="openIframe()">
+                    <div class="card-icon icon-html">HTML</div>
+                    <div class="card-info">
+                        <div class="card-title">iFrames / Sub-pages</div>
+                        <div class="card-desc">Interactive tools, calculators, embedded apps</div>
+                        <div class="card-file">isadditionalcontent_tool.html</div>
+                    </div>
+                </div>
+
+                <div class="content-card" onclick="openExternal()">
+                    <div class="card-icon icon-link">URL</div>
+                    <div class="card-info">
+                        <div class="card-title">External Links</div>
+                        <div class="card-desc">Opens in device browser (requires network)</div>
+                        <div class="card-file">&lt;a href="https://..." target="_blank"&gt;</div>
+                    </div>
+                </div>
+
+                <div class="note">
+                    <strong>Tap a card above</strong> to see sample HTML code for each content type.
+                </div>
+
+                <div class="section">
+                    <h3>EMAIL ATTACHMENTS</h3>
+                    <p class="description">Include PDFs in the ZIP for email attachments. Use the <code>required__</code> prefix to make them mandatory.</p>
+                    <div class="code-block">// Required attachment (always sent)
+required__product_info.pdf
+
+// Optional attachment
+isadditionalcontent_supplement.pdf
+
+// PDFs under 3 MB are auto-attached
+// to the presentation page record</div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <h2>ZIP File Structure</h2>
+                <p class="description">Each presentation page is a ZIP file. Additional content files live alongside the main HTML and thumbnail.</p>
+
+                <div class="zip-tree">
+<span class="folder">01_ProductDetail.zip</span>
+├── 01_ProductDetail.html
+├── 01_ProductDetail.jpg
+├── <span class="additional">isadditionalcontent_study.pdf</span>
+├── <span class="additional">isadditionalcontent_demo.mp4</span>
+├── <span class="additional">isadditionalcontent_tool.html</span>
+├── <span class="required">required__brochure.pdf</span>
+├── <span class="folder">css/</span>
+│   └── styles.css
+├── <span class="folder">js/</span>
+│   └── app.js
+└── <span class="folder">images/</span>
+    └── chart.png</div>
+
+                <div class="section">
+                    <h3>HTML CODE EXAMPLE</h3>
+                    <div id="codeExample">
+                        <span class="syntax-label">PDF LINK</span>
+                        <div class="code-block">&lt;!-- Link to PDF in ZIP --&gt;
+&lt;a href="isadditionalcontent_study.pdf"&gt;
+  View Clinical Study
+&lt;/a&gt;
+
+&lt;!-- Open in new window --&gt;
+&lt;a href="isadditionalcontent_study.pdf"
+   target="_blank"&gt;
+  Open PDF
+&lt;/a&gt;</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>ZIP FILE REQUIREMENTS</h3>
+                    <div class="code-block">Naming:     XX_PageName.zip (XX = order)
+HTML file:  Must match ZIP name
+Thumbnail:  Must match ZIP name (.jpg)
+Max size:   Recommended under 20 MB
+Encoding:   UTF-8 for all text files
+Formats:    PDF, MP4, MOV, M4V, HTML</div>
+                </div>
+
+                <div class="note">
+                    <strong>Key rules:</strong> The HTML filename must match the ZIP filename. The JPEG thumbnail must also match. The <code>isadditionalcontent_</code> prefix tells the player to make the file available alongside the main page.
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-left">&copy; 2025 Makana Pharma Inc. All rights reserved.</div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var examples = {
+            pdf: {
+                label: 'PDF LINK',
+                code: '&lt;!-- Link to PDF in ZIP --&gt;\n&lt;a href="isadditionalcontent_study.pdf"&gt;\n  View Clinical Study\n&lt;/a&gt;\n\n&lt;!-- Open in new window --&gt;\n&lt;a href="isadditionalcontent_study.pdf"\n   target="_blank"&gt;\n  Open PDF\n&lt;/a&gt;'
+            },
+            video: {
+                label: 'VIDEO EMBED',
+                code: '&lt;!-- Embedded video player --&gt;\n&lt;video controls width="100%"&gt;\n  &lt;source src="isadditionalcontent_demo.mp4"\n          type="video/mp4"&gt;\n&lt;/video&gt;\n\n&lt;!-- Or link to open in native player --&gt;\n&lt;a href="isadditionalcontent_demo.mp4"&gt;\n  Watch Demo Video\n&lt;/a&gt;'
+            },
+            iframe: {
+                label: 'IFRAME EMBED',
+                code: '&lt;!-- Embed additional HTML page --&gt;\n&lt;iframe\n  src="isadditionalcontent_tool.html"\n  width="100%"\n  height="500"\n  frameborder="0"&gt;\n&lt;/iframe&gt;\n\n&lt;!-- The embedded HTML can use\n     its own CSS and JavaScript --&gt;'
+            },
+            external: {
+                label: 'EXTERNAL LINK',
+                code: '&lt;!-- Opens in device browser --&gt;\n&lt;a href="https://example.com/resource"\n   target="_blank"&gt;\n  View External Resource\n&lt;/a&gt;\n\n&lt;!-- Note: Requires network\n     connectivity on the device --&gt;'
+            }
+        };
+
+        function showExample(type) {
+            var ex = examples[type];
+            var html = '<span class="syntax-label">' + ex.label + '</span>';
+            html += '<div class="code-block">' + ex.code + '</div>';
+            document.getElementById('codeExample').innerHTML = html;
+        }
+
+        function openPDF() { showExample('pdf'); }
+        function openVideo() { showExample('video'); }
+        function openIframe() { showExample('iframe'); }
+        function openExternal() { showExample('external'); }
+    </script>
+</body>
+</html>

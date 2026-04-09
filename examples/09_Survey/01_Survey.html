@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey Flow Demo</title>
+    <script src="../../shared/js/jquery.min.js"></script>
+    <style>
+        @import url('../../shared/fonts/montserrat.css');
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { width: 100%; height: 100vh; overflow: hidden; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; }
+        .slide { width: 100%; height: 100%; max-width: 2388px; max-height: 1668px; position: relative; background: white; overflow: hidden; border-radius: 12px; }
+        .content-container { position: relative; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; grid-template-areas: "header header" "left right"; height: 100%; padding: 40px; gap: 30px; }
+        .header { grid-area: header; display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 24px; font-weight: 600; color: #3a4674; }
+        .left-panel { grid-area: left; color: #333; padding-right: 20px; overflow-y: auto; }
+        .right-panel { grid-area: right; color: #333; overflow-y: auto; }
+        h2 { font-size: 22px; margin-bottom: 15px; font-weight: 600; color: #3a4674; }
+        h3 { font-size: 15px; margin-bottom: 10px; color: #3a4674; font-weight: 600; }
+        .section { margin-bottom: 25px; }
+        .description { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+        .code-block { background: #f8f9ff; border: 1px solid rgba(91,107,176,0.15); border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 12px; color: #333; margin: 8px 0; white-space: pre-wrap; }
+        .syntax-label { display: inline-block; background: #3a4674; color: white; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-bottom: 5px; font-weight: 600; }
+        .btn { display: inline-block; padding: 12px 24px; border-radius: 30px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; margin: 5px 5px 5px 0; }
+        .btn-primary { background: linear-gradient(135deg, #3a4674, #5b6bb0); color: white; }
+        .btn-secondary { background: linear-gradient(135deg, #66CDAA, #4db896); color: white; }
+        .btn-warning { background: linear-gradient(135deg, #FF9800, #FFA726); color: white; }
+        .note { background: linear-gradient(135deg, #f0f4ff, #fff); padding: 12px; border-radius: 8px; border-left: 4px solid #66CDAA; font-size: 12px; color: #555; margin: 10px 0; }
+        .results { background: #1e1e2e; color: #66CDAA; padding: 12px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; min-height: 80px; margin: 10px 0; }
+        input[type="text"], textarea { width: 100%; padding: 10px 12px; border: 1px solid rgba(91,107,176,0.2); border-radius: 8px; font-size: 13px; margin: 5px 0; font-family: 'Montserrat', sans-serif; }
+        textarea { font-family: 'Courier New', monospace; min-height: 100px; resize: vertical; }
+        label { font-size: 12px; font-weight: 600; color: #3a4674; display: block; margin-top: 10px; }
+        .footer { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-between; padding: 15px 40px; z-index: 10; background: linear-gradient(to top, rgba(245,247,255,0.8), transparent); }
+        .footer-left { color: #777; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <div class="content-container">
+            <div class="header">
+                <div class="page-title">Survey Flow Demo</div>
+            </div>
+
+            <div class="left-panel">
+                <h2>getSurveyFlowJson</h2>
+                <p class="description">Retrieves the survey flow JSON for a specified survey. The result is delivered asynchronously via the <code>surveyflowjsonloaded</code> event listener.</p>
+
+                <div class="section">
+                    <span class="syntax-label">SYNTAX</span>
+                    <div class="code-block">PresentationPlayer.getSurveyFlowJson(options)</div>
+                </div>
+
+                <div class="section">
+                    <label>Survey Developer Name</label>
+                    <input type="text" id="surveyName" placeholder="e.g., Patient_Satisfaction_Survey" value="Patient_Satisfaction_Survey">
+                    <br><br>
+                    <button class="btn btn-primary" onclick="getSurvey()">Get Survey Flow</button>
+                </div>
+
+                <div class="section">
+                    <h3>HOW IT WORKS</h3>
+                    <div class="code-block">// 1. Register listener for the response
+PresentationPlayer.registerEventListener(
+    'surveyflowjsonloaded',
+    function(data) {
+        var surveyData = JSON.parse(data);
+        // Build survey UI from surveyData
+    }
+);
+
+// 2. Request the survey flow
+PresentationPlayer.getSurveyFlowJson({
+    developerName: 'My_Survey'
+});</div>
+                </div>
+
+                <div class="note">
+                    <strong>Async pattern:</strong> <code>getSurveyFlowJson</code> doesn't return data directly. Register the <code>surveyflowjsonloaded</code> event listener first, then call <code>getSurveyFlowJson</code>.
+                </div>
+
+                <h3>SURVEY DATA (Loaded)</h3>
+                <div class="results" id="surveyLoadResult">No survey loaded yet.</div>
+            </div>
+
+            <div class="right-panel">
+                <h2>setSurveyFlowJson</h2>
+                <p class="description">Saves or submits survey flow JSON data. Use <code>'save'</code> for drafts (can be resumed) or <code>'submit'</code> to finalize responses and create records.</p>
+
+                <div class="section">
+                    <span class="syntax-label">SYNTAX</span>
+                    <div class="code-block">PresentationPlayer.setSurveyFlowJson(surveyJson, state)</div>
+                </div>
+
+                <div class="section">
+                    <label>Survey JSON Data</label>
+                    <textarea id="surveyJson">{
+  "surveyId": "a1B000000000001",
+  "responses": [
+    {"questionId": "q1", "answer": "Very Satisfied"},
+    {"questionId": "q2", "answer": "Yes"}
+  ]
+}</textarea>
+                </div>
+
+                <div class="section">
+                    <button class="btn btn-secondary" onclick="saveSurvey()">Save Draft</button>
+                    <button class="btn btn-warning" onclick="submitSurvey()">Submit Final</button>
+                </div>
+
+                <div class="section">
+                    <h3>FULL WORKFLOW EXAMPLE</h3>
+                    <div class="code-block">// Step 1: Load survey
+PresentationPlayer.registerEventListener(
+    'surveyflowjsonloaded',
+    function(data) {
+        surveyData = JSON.parse(data);
+        renderSurveyUI(surveyData);
+    }
+);
+PresentationPlayer.getSurveyFlowJson({
+    developerName: 'Patient_Survey'
+});
+
+// Step 2: User fills out survey...
+
+// Step 3: Save draft (user can resume later)
+PresentationPlayer.setSurveyFlowJson(
+    surveyData, 'save'
+);
+
+// Step 4: Submit final answers
+PresentationPlayer.setSurveyFlowJson(
+    surveyData, 'submit'
+);</div>
+                </div>
+
+                <div class="note">
+                    <strong>States:</strong> <code>'save'</code> = draft (resumable). <code>'submit'</code> = final (creates records). The <code>surveyflowjsonpassedtovisit</code> event fires when survey JSON is passed back to the visit.
+                </div>
+
+                <h3>SET RESULT</h3>
+                <div class="results" id="surveySetResult">No survey saved yet.</div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="footer-left">&copy; 2025 Makana Pharma Inc. All rights reserved.</div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var surveyData = null;
+
+        function getSurvey() {
+            var name = document.getElementById('surveyName').value;
+            document.getElementById('surveyLoadResult').textContent = 'Requesting survey: ' + name + '...';
+            PresentationPlayer.getSurveyFlowJson({developerName: name});
+        }
+
+        function saveSurvey() {
+            var json = document.getElementById('surveyJson').value;
+            try {
+                var data = JSON.parse(json);
+                PresentationPlayer.setSurveyFlowJson(data, 'save');
+                document.getElementById('surveySetResult').textContent =
+                    'Survey SAVED as draft at ' + new Date().toLocaleTimeString();
+            } catch (e) {
+                document.getElementById('surveySetResult').textContent = 'Error: Invalid JSON - ' + e.message;
+            }
+        }
+
+        function submitSurvey() {
+            var json = document.getElementById('surveyJson').value;
+            try {
+                var data = JSON.parse(json);
+                PresentationPlayer.setSurveyFlowJson(data, 'submit');
+                document.getElementById('surveySetResult').textContent =
+                    'Survey SUBMITTED (final) at ' + new Date().toLocaleTimeString();
+            } catch (e) {
+                document.getElementById('surveySetResult').textContent = 'Error: Invalid JSON - ' + e.message;
+            }
+        }
+
+        // Listen for survey data loaded
+        if (typeof PresentationPlayer !== 'undefined' && PresentationPlayer.registerEventListener) {
+            PresentationPlayer.registerEventListener('surveyflowjsonloaded', function(data) {
+                surveyData = JSON.parse(data);
+                document.getElementById('surveyLoadResult').textContent =
+                    'Survey loaded:\n' + JSON.stringify(surveyData, null, 2);
+                document.getElementById('surveyJson').value = JSON.stringify(surveyData, null, 2);
+            });
+        }
+    </script>
+</body>
+</html>
