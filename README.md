@@ -9,7 +9,11 @@ Presentation-Pages/
 ├── .gitignore
 ├── README.md                       # This file — quick reference
 ├── EXAMPLES.md                     # Detailed guide for all examples
-├── examples/                       # Source HTML, thumbnails, and READMEs
+├── shared/                         # Shared assets used by examples and bundled into ZIPs
+│   ├── fonts/                     # Montserrat font files + CSS
+│   ├── images/                    # Background, logos, thumbnail
+│   └── js/                        # jQuery, swipe.js
+├── examples/                       # Source HTML, thumbnails, and READMEs (1 HTML per folder)
 │   ├── 01_Navigation/             # goNextPage, goPreviousPage, goToSlide
 │   ├── 02_Navigation_PageB/       # Navigation page 2 of 3
 │   ├── 03_Navigation_PageC/       # Navigation page 3 of 3
@@ -41,7 +45,7 @@ Presentation-Pages/
     └── 14_Additional_Content.zip
 ```
 
-> **Not tracked in git:** `input/` (source PDFs and baseline ZIPs), `shared/` (fonts/JS assets bundled into ZIPs), `slides/` (unzipped baselines)
+> **Not tracked in git:** `input/` (source PDFs and baseline ZIPs), `slides/` (unzipped baselines)
 
 ## PresentationPlayer API Quick Reference
 

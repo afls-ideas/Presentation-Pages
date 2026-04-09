@@ -1,12 +1,12 @@
 # Examples Guide
 
-Detailed documentation for each LSC Intelligent Content example in this repository. Each example is a working presentation page demonstrating specific PresentationPlayer API functions.
+Detailed documentation for each of the 14 LSC Intelligent Content examples in this repository. Each folder in `examples/` contains exactly one HTML presentation page with its own README and thumbnail.
 
 All examples include:
-- **HTML source** — the presentation page you can preview in a browser
+- **HTML source** — the presentation page (references `../../shared/` for local preview)
 - **JPEG thumbnail** — placeholder thumbnail for the ZIP package
 - **README.md** — API documentation with syntax, arguments, and usage patterns
-- **Pre-built ZIP** — ready to upload in `output/`
+- **Pre-built ZIP** — ready to upload to LSC, located in `output/` (shared assets bundled in)
 
 ---
 
