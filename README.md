@@ -6,32 +6,47 @@ A comprehensive collection of working examples for Life Sciences Cloud (LSC) Int
 
 ```
 Presentation-Pages/
-├── input/                          # Source files
-│   ├── IC_Guide.pdf               # Official IC documentation
-│   └── immunexis_*.zip            # Baseline presentation slides
-├── slides/                         # Unzipped baseline slides
-│   ├── immunexis_01_Intro/
-│   ├── immunexis_02_Risks/
-│   ├── immunexis_03_Graph/
-│   └── immunexis_04_Survey/
-├── shared/                         # Shared assets for examples
-│   ├── js/                        # jQuery, swipe.js
-│   ├── fonts/                     # Montserrat font files
-│   └── images/                    # Logo and background images
-└── examples/                       # API examples by category
-    ├── 01_Navigation/             # goNextPage, goPreviousPage, goToSlide
-    ├── 02_Dynamic_Content/        # Mustache templates, JSON data access
-    ├── 03_Data_Query/             # fetchWithParams, upsert
-    ├── 04_Visit_Management/       # createVisit, updateFeedback
-    ├── 05_Tracking/               # startTrackingPage, stopTrackingPage
-    ├── 06_State_Management/       # saveState, disableDismiss/enableDismiss
-    ├── 07_Alerts_Logging/         # alert, logError
-    ├── 08_Email/                  # launchApprovedEmail, launchEmails
-    ├── 09_Survey/                 # getSurveyFlowJson, setSurveyFlowJson
-    ├── 10_Swipe_Regions/          # defineNoSwipeRegion, destroyNoSwipeRegion
-    ├── 11_Event_Listeners/        # registerEventListener (8 iOS events)
-    └── 12_Additional_Content/     # PDFs, videos, iFrames, external links
+├── .gitignore
+├── README.md                       # This file — quick reference
+├── EXAMPLES.md                     # Detailed guide for all examples
+├── examples/                       # Source HTML, thumbnails, and READMEs
+│   ├── 01_Navigation/             # goNextPage, goPreviousPage, goToSlide (3 pages)
+│   │   ├── 01_Navigation.html
+│   │   ├── 01_Navigation.jpg
+│   │   ├── 02_Navigation_PageB.html
+│   │   ├── 02_Navigation_PageB.jpg
+│   │   ├── 03_Navigation_PageC.html
+│   │   ├── 03_Navigation_PageC.jpg
+│   │   └── README.md
+│   ├── 02_Dynamic_Content/        # Mustache templates, configData JSON
+│   ├── 03_Data_Query/             # fetchWithParams, upsert
+│   ├── 04_Visit_Management/       # createVisit, updateFeedback
+│   ├── 05_Tracking/               # startTrackingPage, stopTrackingPage
+│   ├── 06_State_Management/       # saveState, disableDismiss/enableDismiss
+│   ├── 07_Alerts_Logging/         # alert, logError
+│   ├── 08_Email/                  # launchApprovedEmail, launchEmails
+│   ├── 09_Survey/                 # getSurveyFlowJson, setSurveyFlowJson
+│   ├── 10_Swipe_Regions/          # defineNoSwipeRegion, destroyNoSwipeRegion
+│   ├── 11_Event_Listeners/        # registerEventListener (8 iOS events)
+│   └── 12_Additional_Content/     # PDFs, videos, iFrames, external links
+└── output/                         # Pre-built ZIPs ready to upload
+    ├── 01_Navigation.zip
+    ├── 02_Navigation_PageB.zip
+    ├── 03_Navigation_PageC.zip
+    ├── 04_Dynamic_Content.zip
+    ├── 05_Data_Query.zip
+    ├── 06_Visit_Management.zip
+    ├── 07_Tracking.zip
+    ├── 08_State_Management.zip
+    ├── 09_Alerts_Logging.zip
+    ├── 10_Email.zip
+    ├── 11_Survey.zip
+    ├── 12_Swipe_Regions.zip
+    ├── 13_Event_Listeners.zip
+    └── 14_Additional_Content.zip
 ```
+
+> **Not tracked in git:** `input/` (source PDFs and baseline ZIPs), `shared/` (fonts/JS assets bundled into ZIPs), `slides/` (unzipped baselines)
 
 ## PresentationPlayer API Quick Reference
 
@@ -119,11 +134,12 @@ Each presentation page is a separate ZIP file containing:
 
 ## Getting Started
 
-1. Browse the `examples/` folder for the API function you need
+1. Browse the [`examples/`](examples/) folder for the API function you need
 2. Each example has a README.md with documentation and an HTML file you can preview
-3. Copy the HTML patterns into your own presentation pages
-4. Package as ZIP files following the naming conventions above
-5. Upload to Life Sciences Customer Engagement
+3. See **[EXAMPLES.md](EXAMPLES.md)** for detailed descriptions of every example, including key patterns, gotchas, and usage tips
+4. Copy the HTML patterns into your own presentation pages
+5. Package as ZIP files following the naming conventions above, or use the pre-built ZIPs in `output/`
+6. Upload to Life Sciences Customer Engagement
 
 ## Important Notes
 
