@@ -2,11 +2,15 @@
 
 Detailed documentation for each of the 14 LSC Intelligent Content examples in this repository. Each folder in `examples/` contains exactly one HTML presentation page with its own README and thumbnail.
 
+Each example folder is **self-contained** with all assets included — just zip and upload.
+
 All examples include:
-- **HTML source** — the presentation page (references `../../shared/` for local preview)
+- **HTML source** — the presentation page (references local `js/` and `fonts/`)
 - **JPEG thumbnail** — placeholder thumbnail for the ZIP package
+- **fonts/** — Montserrat font files and CSS
+- **js/** — jQuery
 - **README.md** — API documentation with syntax, arguments, and usage patterns
-- **Pre-built ZIP** — ready to upload to LSC, located in `output/` (shared assets bundled in)
+- **Pre-built ZIP** — ready to upload to LSC, located in `output/`
 
 ---
 
