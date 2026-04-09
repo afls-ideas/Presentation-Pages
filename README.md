@@ -10,25 +10,20 @@ Presentation-Pages/
 ├── README.md                       # This file — quick reference
 ├── EXAMPLES.md                     # Detailed guide for all examples
 ├── examples/                       # Source HTML, thumbnails, and READMEs
-│   ├── 01_Navigation/             # goNextPage, goPreviousPage, goToSlide (3 pages)
-│   │   ├── 01_Navigation.html
-│   │   ├── 01_Navigation.jpg
-│   │   ├── 02_Navigation_PageB.html
-│   │   ├── 02_Navigation_PageB.jpg
-│   │   ├── 03_Navigation_PageC.html
-│   │   ├── 03_Navigation_PageC.jpg
-│   │   └── README.md
-│   ├── 02_Dynamic_Content/        # Mustache templates, configData JSON
-│   ├── 03_Data_Query/             # fetchWithParams, upsert
-│   ├── 04_Visit_Management/       # createVisit, updateFeedback
-│   ├── 05_Tracking/               # startTrackingPage, stopTrackingPage
-│   ├── 06_State_Management/       # saveState, disableDismiss/enableDismiss
-│   ├── 07_Alerts_Logging/         # alert, logError
-│   ├── 08_Email/                  # launchApprovedEmail, launchEmails
-│   ├── 09_Survey/                 # getSurveyFlowJson, setSurveyFlowJson
-│   ├── 10_Swipe_Regions/          # defineNoSwipeRegion, destroyNoSwipeRegion
-│   ├── 11_Event_Listeners/        # registerEventListener (8 iOS events)
-│   └── 12_Additional_Content/     # PDFs, videos, iFrames, external links
+│   ├── 01_Navigation/             # goNextPage, goPreviousPage, goToSlide
+│   ├── 02_Navigation_PageB/       # Navigation page 2 of 3
+│   ├── 03_Navigation_PageC/       # Navigation page 3 of 3
+│   ├── 04_Dynamic_Content/        # Mustache templates, configData JSON
+│   ├── 05_Data_Query/             # fetchWithParams, upsert
+│   ├── 06_Visit_Management/       # createVisit, updateFeedback
+│   ├── 07_Tracking/               # startTrackingPage, stopTrackingPage
+│   ├── 08_State_Management/       # saveState, disableDismiss/enableDismiss
+│   ├── 09_Alerts_Logging/         # alert, logError
+│   ├── 10_Email/                  # launchApprovedEmail, launchEmails
+│   ├── 11_Survey/                 # getSurveyFlowJson, setSurveyFlowJson
+│   ├── 12_Swipe_Regions/          # defineNoSwipeRegion, destroyNoSwipeRegion
+│   ├── 13_Event_Listeners/        # registerEventListener (8 iOS events)
+│   └── 14_Additional_Content/     # PDFs, videos, iFrames, external links
 └── output/                         # Pre-built ZIPs ready to upload
     ├── 01_Navigation.zip
     ├── 02_Navigation_PageB.zip

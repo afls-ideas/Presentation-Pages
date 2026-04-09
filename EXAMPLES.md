@@ -10,13 +10,13 @@ All examples include:
 
 ---
 
-## 01 — Navigation
+## 01–03 — Navigation (3-page demo)
 
-**Directory:** [`examples/01_Navigation/`](examples/01_Navigation/)
+**Directories:** [`examples/01_Navigation/`](examples/01_Navigation/), [`examples/02_Navigation_PageB/`](examples/02_Navigation_PageB/), [`examples/03_Navigation_PageC/`](examples/03_Navigation_PageC/)
 **ZIPs:** `output/01_Navigation.zip`, `output/02_Navigation_PageB.zip`, `output/03_Navigation_PageC.zip`
 **Platform:** Desktop + Mobile
 
-A 3-page mini presentation demonstrating all navigation functions. This is the only multi-page example — upload all 3 ZIPs together to see navigation in action.
+A 3-page mini presentation demonstrating all navigation functions. Upload all 3 ZIPs together to see navigation in action.
 
 ### Functions Covered
 
@@ -28,11 +28,11 @@ A 3-page mini presentation demonstrating all navigation functions. This is the o
 
 ### Pages
 
-| File | Role |
-|------|------|
-| `01_Navigation.html` | Page 1 — Next button, jump-to-Page-3 with animation options |
-| `02_Navigation_PageB.html` | Page 2 — Previous/Next buttons, jump to any page |
-| `03_Navigation_PageC.html` | Page 3 — Previous button, jump back to Page 1, API summary |
+| Folder | ZIP | Role |
+|--------|-----|------|
+| `01_Navigation/` | `01_Navigation.zip` | Page 1 — Next button, jump-to-Page-3 with animation options |
+| `02_Navigation_PageB/` | `02_Navigation_PageB.zip` | Page 2 — Previous/Next buttons, jump to any page |
+| `03_Navigation_PageC/` | `03_Navigation_PageC.zip` | Page 3 — Previous button, jump back to Page 1, API summary |
 
 ### Key Patterns
 
@@ -53,9 +53,9 @@ element.textContent = ob+ob+ob + '.' + cb+cb+cb;
 
 ---
 
-## 02 — Dynamic Content
+## 04 — Dynamic Content
 
-**Directory:** [`examples/02_Dynamic_Content/`](examples/02_Dynamic_Content/)
+**Directory:** [`examples/04_Dynamic_Content/`](examples/04_Dynamic_Content/)
 **ZIP:** `output/04_Dynamic_Content.zip`
 **Platform:** Desktop + Mobile
 
@@ -79,9 +79,9 @@ Demonstrates Mustache template syntax and live `configData` JSON display. The le
 
 ---
 
-## 03 — Data Query
+## 05 — Data Query
 
-**Directory:** [`examples/03_Data_Query/`](examples/03_Data_Query/)
+**Directory:** [`examples/05_Data_Query/`](examples/05_Data_Query/)
 **ZIP:** `output/05_Data_Query.zip`
 **Platform:** Mobile only
 
@@ -103,9 +103,9 @@ Query Salesforce records with SOQL and create/update records from within present
 
 ---
 
-## 04 — Visit Management
+## 06 — Visit Management
 
-**Directory:** [`examples/04_Visit_Management/`](examples/04_Visit_Management/)
+**Directory:** [`examples/06_Visit_Management/`](examples/06_Visit_Management/)
 **ZIP:** `output/06_Visit_Management.zip`
 **Platform:** Mobile only
 
@@ -126,9 +126,9 @@ Create visits and capture HCP feedback reactions during presentations.
 
 ---
 
-## 05 — Tracking
+## 07 — Tracking
 
-**Directory:** [`examples/05_Tracking/`](examples/05_Tracking/)
+**Directory:** [`examples/07_Tracking/`](examples/07_Tracking/)
 **ZIP:** `output/07_Tracking.zip`
 **Platform:** Mobile only
 
@@ -154,9 +154,9 @@ PresentationPlayer.registerEventListener('viewdisappearing', function() {
 
 ---
 
-## 06 — State Management
+## 08 — State Management
 
-**Directory:** [`examples/06_State_Management/`](examples/06_State_Management/)
+**Directory:** [`examples/08_State_Management/`](examples/08_State_Management/)
 **ZIP:** `output/08_State_Management.zip`
 **Platform:** Mobile only
 
@@ -178,9 +178,9 @@ Save and restore presentation state, and control player dismiss behavior.
 
 ---
 
-## 07 — Alerts & Logging
+## 09 — Alerts & Logging
 
-**Directory:** [`examples/07_Alerts_Logging/`](examples/07_Alerts_Logging/)
+**Directory:** [`examples/09_Alerts_Logging/`](examples/09_Alerts_Logging/)
 **ZIP:** `output/09_Alerts_Logging.zip`
 **Platform:** Mobile only
 
@@ -195,9 +195,9 @@ Display native alerts and log errors for debugging.
 
 ---
 
-## 08 — Email
+## 10 — Email
 
-**Directory:** [`examples/08_Email/`](examples/08_Email/)
+**Directory:** [`examples/10_Email/`](examples/10_Email/)
 **ZIP:** `output/10_Email.zip`
 **Platform:** Mobile only
 
@@ -218,9 +218,9 @@ Launch email templates from presentations.
 
 ---
 
-## 09 — Survey
+## 11 — Survey
 
-**Directory:** [`examples/09_Survey/`](examples/09_Survey/)
+**Directory:** [`examples/11_Survey/`](examples/11_Survey/)
 **ZIP:** `output/11_Survey.zip`
 **Platform:** Mobile only
 
@@ -241,9 +241,9 @@ Get and set survey flow JSON data.
 
 ---
 
-## 10 — Swipe Regions
+## 12 — Swipe Regions
 
-**Directory:** [`examples/10_Swipe_Regions/`](examples/10_Swipe_Regions/)
+**Directory:** [`examples/12_Swipe_Regions/`](examples/12_Swipe_Regions/)
 **ZIP:** `output/12_Swipe_Regions.zip`
 **Platform:** Mobile only
 
@@ -265,9 +265,9 @@ Define rectangular regions where swipe gestures are disabled.
 
 ---
 
-## 11 — Event Listeners
+## 13 — Event Listeners
 
-**Directory:** [`examples/11_Event_Listeners/`](examples/11_Event_Listeners/)
+**Directory:** [`examples/13_Event_Listeners/`](examples/13_Event_Listeners/)
 **ZIP:** `output/13_Event_Listeners.zip`
 **Platform:** Mobile only
 
@@ -294,9 +294,9 @@ PresentationPlayer.registerEventListener(iOS_event, handler)
 
 ---
 
-## 12 — Additional Content
+## 14 — Additional Content
 
-**Directory:** [`examples/12_Additional_Content/`](examples/12_Additional_Content/)
+**Directory:** [`examples/14_Additional_Content/`](examples/14_Additional_Content/)
 **ZIP:** `output/14_Additional_Content.zip`
 **Platform:** Desktop + Mobile
 
