@@ -47,9 +47,9 @@
 
             <div class="main-content">
                 <h1>Page 2</h1>
-                <div class="subtitle">You navigated here from Page 1 using <strong>goNextPage()</strong></div>
+                <div class="subtitle">You navigated here from Page 1 using <strong>Next Page</strong></div>
 
-                <div class="arrived-via">goNextPage() brought you forward one slide</div>
+                <div class="arrived-via">goNextSequence() (web) or goNextPage() (iPad) brought you forward one slide</div>
 
                 <div class="nav-bar">
                     <button class="btn btn-primary" onclick="goPrev()">&larr; Previous Page</button>
@@ -63,12 +63,14 @@
                 </div>
 
                 <div class="code-block">// This page was reached via:
-PresentationPlayer.goNextPage();
+// Web:  PresentationPlayer.goNextSequence()
+// iPad: PresentationPlayer.goNextPage()
 
 // Go back with:
-PresentationPlayer.goPreviousPage();
+// Web:  PresentationPlayer.goPreviousSequence()
+// iPad: PresentationPlayer.goPreviousPage()
 
-// Or jump directly with:
+// Or jump directly (both platforms):
 PresentationPlayer.gotoSlide(
     pageId, 'filename.html', 'swipeleft'
 );</div>
@@ -86,18 +88,26 @@ PresentationPlayer.gotoSlide(
 
     <script type="text/javascript">
         function goNext() {
-            PresentationPlayer.goNextPage();
+            if (typeof PresentationPlayer.goNextSequence === 'function') {
+                PresentationPlayer.goNextSequence();
+            } else {
+                PresentationPlayer.goNextPage();
+            }
         }
 
         function goPrev() {
-            PresentationPlayer.goPreviousPage();
+            if (typeof PresentationPlayer.goPreviousSequence === 'function') {
+                PresentationPlayer.goPreviousSequence();
+            } else {
+                PresentationPlayer.goPreviousPage();
+            }
         }
 
         function jumpToPage(pageNum, animation) {
             var pages = [
                 {name: 'Navigation', slide: '01_Navigation.html'},
-                {name: 'Navigation PageB', slide: '01_Navigation_PageB.html'},
-                {name: 'Navigation PageC', slide: '01_Navigation_PageC.html'}
+                {name: 'Navigation PageB', slide: '02_Navigation_PageB.html'},
+                {name: 'Navigation PageC', slide: '03_Navigation_PageC.html'}
             ];
             var index = parseInt(pageNum) - 1;
             PresentationPlayer.gotoSlide(pages[index].name, pages[index].slide, animation);

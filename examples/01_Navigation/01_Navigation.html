@@ -49,7 +49,7 @@
             </div>
 
             <div class="left-panel">
-                <h2>Page 1 of 3: goNextPage / goPreviousPage</h2>
+                <h2>Page 1 of 3: Next / Previous Navigation</h2>
                 <p class="description">This is a 3-slide mini presentation demonstrating LSC navigation. Each slide is a separate ZIP/HTML file. Use the buttons below to navigate between them.</p>
 
                 <div class="nav-bar">
@@ -60,9 +60,14 @@
 
                 <div class="section">
                     <span class="syntax-label">SYNTAX</span>
-                    <div class="code-block">PresentationPlayer.goNextPage()
+                    <div class="code-block">// Web (Desktop):
+PresentationPlayer.goNextSequence()
+PresentationPlayer.goPreviousSequence()
+
+// iPad (Mobile):
+PresentationPlayer.goNextPage()
 PresentationPlayer.goPreviousPage()</div>
-                    <p class="description">Navigates to the next or previous page in the presentation. Does nothing if already on the first/last page. Available on both desktop and mobile.</p>
+                    <p class="description">Navigates to the next or previous page in the presentation. Does nothing if already on the first/last page. The method names differ between platforms.</p>
                 </div>
 
                 <div class="section">
@@ -80,7 +85,7 @@ PresentationPlayer.goPreviousPage()</div>
                 </div>
 
                 <div class="note">
-                    <strong>Desktop + Mobile:</strong> <code>goNextPage</code>, <code>goPreviousPage</code>, and <code>goToSlide</code> are the only navigation functions available on desktop. All other PresentationPlayer functions are mobile only.
+                    <strong>Platform difference:</strong> The web player uses <code>goNextSequence</code> / <code>goPreviousSequence</code>, while the iPad uses <code>goNextPage</code> / <code>goPreviousPage</code>. The <code>gotoSlide</code> method works on both platforms.
                 </div>
             </div>
 
@@ -146,11 +151,16 @@ document.addEventListener(
         document.getElementById('tipCode').textContent = 'var configData = ' + ob+ob+ob + '.' + cb+cb+cb + ';';
 
         function goNext() {
-            PresentationPlayer.goNextPage();
+            // Web uses goNextSequence, iPad uses goNextPage
+            if (typeof PresentationPlayer.goNextSequence === 'function') {
+                PresentationPlayer.goNextSequence();
+            } else {
+                PresentationPlayer.goNextPage();
+            }
         }
 
         function jumpToPage3(animation) {
-            PresentationPlayer.gotoSlide('Navigation PageC', '01_Navigation_PageC.html', animation);
+            PresentationPlayer.gotoSlide('Navigation PageC', '03_Navigation_PageC.html', animation);
         }
     </script>
 </body>

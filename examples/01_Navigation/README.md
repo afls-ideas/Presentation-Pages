@@ -12,34 +12,40 @@ This example uses **3 slides** to demonstrate navigation in action:
 | `02_Navigation_PageB.html` | Page 2 — Middle page with Previous/Next buttons and jump-to-page options |
 | `03_Navigation_PageC.html` | Page 3 — Last page with navigation summary and jump back to Page 1 |
 
+**Note:** The web player uses `goNextSequence`/`goPreviousSequence` while the iPad uses `goNextPage`/`goPreviousPage`. The `gotoSlide` method works on both platforms. See the cross-platform pattern below.
+
 In production, each HTML file would be packaged as a separate ZIP (e.g., `01_Navigation.zip`, `02_Navigation_PageB.zip`, `03_Navigation_PageC.zip`).
 
 ---
 
-## PresentationPlayer.goNextPage()
+## Next / Previous Page Navigation
 
-Goes to the next page in the presentation. If the current page is the last page, nothing happens.
+Goes to the next or previous page in the presentation. Does nothing if already on the first/last page.
 
-**Available on:** Desktop and Mobile
+**Important:** The method names differ between platforms:
 
-### Syntax
+| Platform | Next Page | Previous Page |
+|----------|-----------|---------------|
+| **Web (Desktop)** | `PresentationPlayer.goNextSequence()` | `PresentationPlayer.goPreviousSequence()` |
+| **iPad (Mobile)** | `PresentationPlayer.goNextPage()` | `PresentationPlayer.goPreviousPage()` |
+
+### Cross-platform pattern
 ```javascript
-PresentationPlayer.goNextPage()
-```
+function goNext() {
+    if (typeof PresentationPlayer.goNextSequence === 'function') {
+        PresentationPlayer.goNextSequence();
+    } else {
+        PresentationPlayer.goNextPage();
+    }
+}
 
-**Arguments:** None
-
----
-
-## PresentationPlayer.goPreviousPage()
-
-Goes to the previous page in the presentation. If the current page is the first page, nothing happens.
-
-**Available on:** Desktop and Mobile
-
-### Syntax
-```javascript
-PresentationPlayer.goPreviousPage()
+function goPrev() {
+    if (typeof PresentationPlayer.goPreviousSequence === 'function') {
+        PresentationPlayer.goPreviousSequence();
+    } else {
+        PresentationPlayer.goPreviousPage();
+    }
+}
 ```
 
 **Arguments:** None
@@ -50,7 +56,7 @@ PresentationPlayer.goPreviousPage()
 
 Goes to the specified page within a presentation. Use unique names or IDs to ensure the correct page opens.
 
-**Available on:** Desktop and Mobile
+**Available on:** Desktop (Web) and Mobile (iPad)
 
 ### Syntax
 ```javascript

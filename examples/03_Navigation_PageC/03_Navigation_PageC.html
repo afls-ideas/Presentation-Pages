@@ -56,7 +56,7 @@
             <div class="main-content">
                 <div class="left-side">
                     <h1>Page 3</h1>
-                    <div class="subtitle">This is the last slide.<br>You arrived here via <strong>goNextPage()</strong> or <strong>goToSlide()</strong>.</div>
+                    <div class="subtitle">This is the last slide.<br>You arrived here via <strong>Next Page</strong> or <strong>goToSlide()</strong>.</div>
 
                     <div class="arrived-via">If you came from Page 1, you used goToSlide() to skip Page 2!</div>
 
@@ -70,7 +70,7 @@
                     </div>
 
                     <div class="note">
-                        <strong>Last page:</strong> <code>goNextPage()</code> does nothing here. Use <code>goPreviousPage()</code> or <code>goToSlide()</code> to go back.
+                        <strong>Last page:</strong> Next page does nothing here. Use Previous Page or <code>goToSlide()</code> to go back.
                     </div>
                 </div>
 
@@ -78,15 +78,17 @@
                     <h2>Navigation API Summary</h2>
 
                     <div class="summary-card">
-                        <h3>goNextPage()</h3>
-                        <div class="func">PresentationPlayer.goNextPage()</div>
-                        <div class="desc">Move to the next page in order. No-op on last page. <span class="platform-badge badge-both">Desktop + Mobile</span></div>
+                        <h3>Next Page</h3>
+                        <div class="func">PresentationPlayer.goNextSequence() <span class="platform-badge badge-both">Web</span></div>
+                        <div class="func">PresentationPlayer.goNextPage() <span class="platform-badge badge-mobile">iPad</span></div>
+                        <div class="desc">Move to the next page in order. No-op on last page.</div>
                     </div>
 
                     <div class="summary-card">
-                        <h3>goPreviousPage()</h3>
-                        <div class="func">PresentationPlayer.goPreviousPage()</div>
-                        <div class="desc">Move to the previous page in order. No-op on first page. <span class="platform-badge badge-both">Desktop + Mobile</span></div>
+                        <h3>Previous Page</h3>
+                        <div class="func">PresentationPlayer.goPreviousSequence() <span class="platform-badge badge-both">Web</span></div>
+                        <div class="func">PresentationPlayer.goPreviousPage() <span class="platform-badge badge-mobile">iPad</span></div>
+                        <div class="desc">Move to the previous page in order. No-op on first page.</div>
                     </div>
 
                     <div class="summary-card">
@@ -109,7 +111,11 @@
 
     <script type="text/javascript">
         function goPrev() {
-            PresentationPlayer.goPreviousPage();
+            if (typeof PresentationPlayer.goPreviousSequence === 'function') {
+                PresentationPlayer.goPreviousSequence();
+            } else {
+                PresentationPlayer.goPreviousPage();
+            }
         }
 
         function jumpToPage1(animation) {
