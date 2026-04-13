@@ -4,9 +4,17 @@ Last page in the 3-page navigation demo. Upload all 3 navigation ZIPs together t
 
 ## What This Page Shows
 
-- **Previous button** using `goPreviousPage()`
+- **Previous button** — uses `goPreviousSequence()` on web, `goPreviousPage()` on iPad
 - **Jump back to Page 1** using `gotoSlide()` with swipe animation
-- **Navigation API summary** — quick reference of all 3 navigation functions
+- **Navigation API summary** — quick reference of all navigation functions with platform differences
+
+## Platform Difference
+
+| Action | Web (Desktop) | iPad (Mobile) |
+|--------|---------------|---------------|
+| Next page | `PresentationPlayer.goNextSequence()` | `PresentationPlayer.goNextPage()` |
+| Previous page | `PresentationPlayer.goPreviousSequence()` | `PresentationPlayer.goPreviousPage()` |
+| Jump to page | `PresentationPlayer.gotoSlide()` | `PresentationPlayer.gotoSlide()` |
 
 ## Related Pages
 
@@ -18,4 +26,4 @@ Last page in the 3-page navigation demo. Upload all 3 navigation ZIPs together t
 
 ## See Also
 
-- [01_Navigation README](../01_Navigation/README.md) for full API documentation
+- [01_Navigation README](../01_Navigation/README.md) for full API documentation and cross-platform pattern

@@ -8,7 +8,7 @@ This example uses **3 slides** to demonstrate navigation in action:
 
 | File | Description |
 |------|-------------|
-| `01_Navigation.html` | Page 1 — API docs for goNextPage/goPreviousPage/goToSlide, with buttons to navigate forward or jump to Page 3 |
+| `01_Navigation.html` | Page 1 — API docs for next/previous/goToSlide with platform differences, buttons to navigate forward or jump to Page 3 |
 | `02_Navigation_PageB.html` | Page 2 — Middle page with Previous/Next buttons and jump-to-page options |
 | `03_Navigation_PageC.html` | Page 3 — Last page with navigation summary and jump back to Page 1 |
 
