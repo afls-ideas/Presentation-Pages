@@ -289,6 +289,8 @@ function onVisitCreated(data) {
 
         // ---- Create Visit ----
 
+        var currentVisitId = null;
+
         function doCreateVisit() {
             var el = document.getElementById('results');
             el.textContent += '\n\n>>> Calling PresentationPlayer.createVisit(\'onVisitCreated\')\n\nWaiting for response...';
@@ -298,18 +300,23 @@ function onVisitCreated(data) {
         function onVisitCreated(data) {
             var el = document.getElementById('results');
             var existing = el.textContent.replace('\n\nWaiting for response...', '');
-            var visitId = data.id;
+            currentVisitId = data.id;
+
             if (data.state === 'success') {
-                el.textContent = existing + '\n\n<<< Success!\n' + JSON.stringify(data, null, 2);
+                el.textContent = existing + '\n\n<<< Visit Created!\n' + JSON.stringify(data, null, 2);
+            } else if (currentVisitId) {
+                el.textContent = existing + '\n\n<<< Visit Already Exists (using existing ID):\n' + JSON.stringify(data, null, 2);
             } else {
                 el.textContent = existing + '\n\n<<< Error:\n' + JSON.stringify(data, null, 2);
+                return;
             }
-            // Query Visit details if we have an ID
-            if (visitId) {
+
+            // Query Visit details
+            if (currentVisitId) {
                 el.textContent += '\n\n>>> Querying Visit details...';
                 try {
                     PresentationPlayer.fetchWithParams(
-                        "SELECT Id, AccountId, Account.Name, VisitorId, Status, PlannedVisitStartTime, PlannedVisitEndTime, TerritoryId FROM Visit WHERE Id = '" + visitId + "' LIMIT 1",
+                        "SELECT Id, AccountId, Account.Name, VisitorId, Status, PlannedVisitStartTime, PlannedVisitEndTime, TerritoryId FROM Visit WHERE Id = '" + currentVisitId + "' LIMIT 1",
                         {'batchSize': 1}, 'onVisitQueried'
                     );
                 } catch(e) {
@@ -331,8 +338,36 @@ function onVisitCreated(data) {
                     + 'Start: ' + (visit.PlannedVisitStartTime || 'N/A') + '\n'
                     + 'End: ' + (visit.PlannedVisitEndTime || 'N/A') + '\n'
                     + '\nFull record:\n' + JSON.stringify(visit, null, 2);
+
+                // Now create PresentationClickStrmEntry linked to this visit
+                createClickStreamEntry();
             } else {
                 el.textContent += '\n\n<<< Visit not found in local DB.\n' + JSON.stringify(data, null, 2);
+            }
+        }
+
+        // ---- Click Stream Entry ----
+
+        function createClickStreamEntry() {
+            if (!currentVisitId) return;
+            var el = document.getElementById('results');
+            var record = {
+                'sobject': 'PresentationClickStrmEntry',
+                'VisitId': currentVisitId
+            };
+            el.textContent += '\n\n>>> Creating PresentationClickStrmEntry:\n' + JSON.stringify([record], null, 2) + '\n\nWaiting for response...';
+            PresentationPlayer.upsert([record], 'onClickStreamCreated');
+        }
+
+        function onClickStreamCreated(data) {
+            var el = document.getElementById('results');
+            var existing = el.textContent.replace('\n\nWaiting for response...', '');
+            if (data.state === 'success') {
+                el.textContent = existing + '\n\n<<< PresentationClickStrmEntry created!\n' + JSON.stringify(data, null, 2);
+            } else {
+                el.textContent = existing + '\n\n<<< PresentationClickStrmEntry Error:\n' + data.message + '\nCode: ' + data.code
+                    + '\n\nNote: This may require additional fields or the sobject name may differ.'
+                    + '\nFull response:\n' + JSON.stringify(data, null, 2);
             }
         }
 

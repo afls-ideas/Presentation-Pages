@@ -58,6 +58,38 @@ When `createVisit` succeeds, the following records are automatically created and
 
 Users can select the Visit button in the presentation player menu to open the visit. All presentation metrics tracked during the session are linked to the visit.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A[User presses Create Visit] --> B["PresentationPlayer.createVisit('onVisitCreated')"]
+    B --> C{Response}
+    C -->|"state: success"| D["New visit created<br/>data.id = visit ID"]
+    C -->|"state: error<br/>+ id present"| E["Visit already exists<br/>data.id = existing visit ID"]
+    C -->|"state: error<br/>no id"| F["Error<br/>(e.g. no attendees selected)"]
+    F --> Z[Stop]
+
+    D --> G[Store visitId]
+    E --> G
+
+    G --> H["Query Visit record<br/>SELECT Id, AccountId, Account.Name,<br/>Status, VisitorId, TerritoryId<br/>FROM Visit WHERE Id = visitId"]
+    H --> I{Visit found?}
+    I -->|Yes| J["Display visit details<br/>(Account, Status, Visitor, Territory)"]
+    I -->|No| K[Visit not in local DB]
+
+    J --> L["Upsert PresentationClickStrmEntry<br/>{ sobject, VisitId }"]
+    L --> M{Upsert result}
+    M -->|Success| N["Click stream entry created<br/>linked to visit"]
+    M -->|Error| O["Show error<br/>(field name or sobject may differ)"]
+
+    style A fill:#3a4674,color:#fff
+    style D fill:#66CDAA,color:#333
+    style E fill:#FFD700,color:#333
+    style F fill:#ff5252,color:#fff
+    style N fill:#66CDAA,color:#333
+    style Z fill:#ff5252,color:#fff
+```
+
 ## Test Paths
 
 | # | Scenario | Expected Result |
