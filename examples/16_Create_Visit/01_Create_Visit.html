@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>createVisit Function</title>
+    <script src="js/jquery.min.js"></script>
+    <style>
+        @import url('fonts/montserrat.css');
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { width: 100%; height: 100vh; overflow: hidden; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; }
+        .slide { width: 100%; height: 100%; max-width: 2388px; max-height: 1668px; position: relative; background: white; overflow: hidden; border-radius: 12px; }
+
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 30px 40px 0; }
+        .page-title { font-size: 24px; font-weight: 600; color: #3a4674; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .page-indicator { display: flex; gap: 8px; align-items: center; }
+        .page-dot { width: 12px; height: 12px; border-radius: 50%; background: #ddd; }
+        .page-dot.active { background: #3a4674; width: 30px; border-radius: 6px; }
+        .btn-explain { padding: 8px 18px; border-radius: 20px; border: 2px solid #3a4674; background: white; color: #3a4674; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.3s ease; }
+        .btn-explain:hover { background: #3a4674; color: white; }
+        .btn-explain.active { background: #3a4674; color: white; }
+
+        /* Main content */
+        .main-content { padding: 25px 40px; overflow-y: auto; height: calc(100% - 80px); }
+
+        /* Info section */
+        .info-section { margin-bottom: 20px; }
+        .info-section p { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+
+        /* Info grid */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px 30px; margin-bottom: 20px; }
+        .info-item { }
+        .info-item label { font-size: 13px; font-weight: 600; color: #3a4674; display: block; margin-bottom: 4px; }
+        .info-value { font-size: 13px; color: #555; padding: 10px 12px; background: #f8f9ff; border-radius: 8px; border: 1px solid rgba(91,107,176,0.15); }
+
+        /* Note */
+        .note { background: linear-gradient(135deg, #f0f4ff, #fff); padding: 12px; border-radius: 8px; border-left: 4px solid #66CDAA; font-size: 12px; color: #555; margin: 15px 0; }
+        .warning { background: linear-gradient(135deg, #fff8f0, #fff); padding: 12px; border-radius: 8px; border-left: 4px solid #FF9800; font-size: 12px; color: #555; margin: 15px 0; }
+
+        /* Buttons */
+        .btn { display: inline-block; padding: 12px 28px; border-radius: 30px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; margin: 5px 5px 5px 0; }
+        .btn-primary { background: linear-gradient(135deg, #3a4674, #5b6bb0); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(58,70,116,0.3); }
+
+        /* Results */
+        .results-section { margin-top: 15px; }
+        .results-section h3 { font-size: 14px; color: #3a4674; font-weight: 600; margin-bottom: 8px; }
+        .results { background: #1e1e2e; color: #66CDAA; padding: 12px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; min-height: 60px; white-space: pre-wrap; word-break: break-all; }
+
+        /* Explain side panel */
+        .explain-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 99; display: none; }
+        .explain-panel { position: absolute; top: 0; right: -420px; width: 420px; height: 100%; background: white; z-index: 100; box-shadow: -4px 0 20px rgba(0,0,0,0.15); transition: right 0.3s ease; overflow-y: auto; padding: 30px; }
+        .explain-panel.open { right: 0; }
+        .explain-close { position: absolute; top: 15px; right: 15px; width: 30px; height: 30px; border-radius: 50%; border: none; background: #f0f0f0; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .explain-panel h2 { font-size: 20px; margin-bottom: 15px; color: #3a4674; }
+        .explain-panel h3 { font-size: 14px; margin: 15px 0 8px; color: #3a4674; font-weight: 600; }
+        .explain-panel p { font-size: 12px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+        .explain-panel .code-block { background: #f8f9ff; border: 1px solid rgba(91,107,176,0.15); border-radius: 8px; padding: 10px; font-family: 'Courier New', monospace; font-size: 10px; color: #333; margin: 8px 0; white-space: pre-wrap; word-break: break-all; }
+        .explain-panel .note { background: linear-gradient(135deg, #f0f4ff, #fff); padding: 10px; border-radius: 8px; border-left: 4px solid #66CDAA; font-size: 11px; color: #555; margin: 10px 0; }
+        .explain-panel .warning { background: linear-gradient(135deg, #fff8f0, #fff); padding: 10px; border-radius: 8px; border-left: 4px solid #FF9800; font-size: 11px; color: #555; margin: 10px 0; }
+
+        /* Footer */
+        .footer { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-between; padding: 15px 40px; z-index: 10; background: linear-gradient(to top, rgba(245,247,255,0.8), transparent); }
+        .footer-left { color: #777; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <div class="header">
+            <div class="page-title">createVisit Function</div>
+            <div class="header-right">
+                <button class="btn-explain" id="explainBtn" onclick="toggleExplain()">Explain</button>
+                <div class="page-indicator">
+                    <div class="page-dot active"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="info-section">
+                <p>Creates a visit for the selected attendees and returns the parent visit ID. Salesforce applies all configured visit validations. Related records (ProviderVisit, ProviderVisitProdDetailing, PresentationForum, ClickStream) are created automatically.</p>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Current User</label>
+                    <div class="info-value" id="visitorInfo">Loading...</div>
+                </div>
+                <div class="info-item">
+                    <label>Territory</label>
+                    <div class="info-value" id="territoryInfo">Loading...</div>
+                </div>
+            </div>
+
+            <div class="warning">
+                <strong>One visit per session:</strong> This function should only be invoked once per presentation session. If a visit was already created, the function returns the existing visit ID. If the player was opened for an existing visit, the function also returns that visit's ID.
+            </div>
+
+            <button class="btn btn-primary" onclick="doCreateVisit()">Create Visit</button>
+
+            <div class="note">
+                <strong>What happens on success:</strong>
+                <ul style="margin: 8px 0 0 20px; font-size: 12px; line-height: 1.8;">
+                    <li>Visit button appears in the presentation player menu</li>
+                    <li>All presentation metrics are linked to the visit</li>
+                    <li>ProviderVisit and ProviderVisitProdDetailing are created automatically</li>
+                    <li>Product restrictions and presentation targeting apply</li>
+                </ul>
+            </div>
+
+            <!-- Results -->
+            <div class="results-section">
+                <h3>RESULTS</h3>
+                <div class="results" id="results">No visit created yet.</div>
+            </div>
+        </div>
+
+        <!-- Explain Panel -->
+        <div class="explain-overlay" id="explainOverlay" onclick="toggleExplain()"></div>
+        <div class="explain-panel" id="explainPanel">
+            <button class="explain-close" onclick="toggleExplain()">&times;</button>
+
+            <h2>createVisit Function</h2>
+            <p>Creates a visit for the selected attendees and returns the result to the specified callback method. When visits are created, Salesforce applies all configured visit validations.</p>
+
+            <h3>Syntax</h3>
+            <div class="code-block">PresentationPlayer.createVisit(callbackMethod)</div>
+
+            <h3>Example</h3>
+            <div class="code-block">function createVisit() {
+  PresentationPlayer.createVisit('onVisitCreated');
+}
+
+function onVisitCreated(data) {
+  if (data.state === 'success') {
+    console.log('Visit ID: ' + data.id);
+  } else {
+    console.log('Error: ' + data.errorMessage);
+  }
+}</div>
+
+            <h3>Success Response</h3>
+            <div class="code-block">{
+  "state": "success",
+  "id": "&lt;parent_visit_uid&gt;"
+}</div>
+
+            <h3>Error Response</h3>
+            <div class="code-block">{
+  "state": "error",
+  "errorMessage": "&lt;error&gt;",
+  "id": "&lt;optional_previously_created_visit_id&gt;"
+}</div>
+
+            <h3>Related Records Created</h3>
+            <p>These records are automatically related to the new visit:</p>
+            <ul style="font-size: 11px; margin: 5px 0 10px 20px; line-height: 1.8; color: #555;">
+                <li>ProviderVisit</li>
+                <li>ProviderVisitProdDetailing</li>
+                <li>ProviderVisitDetailingProductMessage</li>
+                <li>PresentationForum</li>
+                <li>PresentationClickStreamEntry</li>
+            </ul>
+
+            <div class="warning">
+                <strong>Important:</strong> Do not use the <code>upsert</code> function to create visits. Use <code>createVisit</code> instead.
+            </div>
+
+            <div class="note">
+                <strong>Tip:</strong> Invoke this function only once per presentation session. If called again, it returns the ID of the previously created visit.
+            </div>
+
+            <h3>Limitations</h3>
+            <ul style="font-size: 11px; margin: 5px 0 10px 20px; line-height: 1.8; color: #555;">
+                <li>Does not populate Mustache variables that reference visits</li>
+                <li>At least one attendee must be selected before calling createVisit (returns error otherwise)</li>
+                <li>Supported only in the Life Sciences Cloud mobile app</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">&copy; 2025 Makana Pharma Inc. All rights reserved.</div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var configData = null;
+        var currentUserId = null;
+
+        // ---- Init ----
+
+        document.addEventListener('PresentationDOMContentLoaded', function(event) {
+            configData = event.data;
+            if (configData && configData.parameters && configData.parameters.id) {
+                currentUserId = configData.parameters.id;
+            }
+            initPage();
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                if (typeof PresentationPlayer !== 'undefined' && !currentUserId) {
+                    initPage();
+                }
+            }, 500);
+        });
+
+        function initPage() {
+            loadCurrentUser();
+            showConfigData();
+        }
+
+        function showConfigData() {
+            var el = document.getElementById('results');
+            if (configData) {
+                var lines = [];
+                var p = configData.parameters || {};
+                // Show key IDs if detected
+                if (p.accountId) lines.push('Account ID: ' + p.accountId);
+                if (p.id) lines.push('User ID: ' + p.id);
+                if (p.visitId) lines.push('Visit ID (existing): ' + p.visitId);
+                // Check for any visit-related keys
+                Object.keys(p).forEach(function(key) {
+                    if (key.toLowerCase().indexOf('visit') !== -1) {
+                        lines.push('  ' + key + ': ' + p[key]);
+                    }
+                });
+                lines.push('');
+                lines.push('Full configData:');
+                lines.push(JSON.stringify(configData, null, 2));
+                el.textContent = lines.join('\n');
+            } else {
+                el.textContent = 'configData not available yet.';
+            }
+        }
+
+        // ---- Data Loading ----
+
+        function loadCurrentUser() {
+            try {
+                var query = currentUserId
+                    ? "SELECT Id, Name FROM User WHERE Id = '" + currentUserId + "'"
+                    : "SELECT Id, Name FROM User LIMIT 1";
+                PresentationPlayer.fetchWithParams(query, {'batchSize': 1}, 'onCurrentUserLoaded');
+            } catch(e) {}
+        }
+
+        function onCurrentUserLoaded(data) {
+            var el = document.getElementById('visitorInfo');
+            if ((data.state === 'success' || data.records) && data.records && data.records.length > 0) {
+                currentUserId = data.records[0].Id;
+                el.textContent = data.records[0].Name + ' (' + currentUserId + ')';
+                loadUserAdditionalInfo();
+            } else {
+                el.textContent = currentUserId || 'Not available';
+            }
+        }
+
+        function loadUserAdditionalInfo() {
+            if (!currentUserId) return;
+            try {
+                PresentationPlayer.fetchWithParams(
+                    "SELECT Id, Preference FROM UserAdditionalInfo WHERE UserId = '" + currentUserId + "' LIMIT 1",
+                    {'batchSize': 1}, 'onUserAdditionalInfoLoaded'
+                );
+            } catch(e) {}
+        }
+
+        function onUserAdditionalInfoLoaded(data) {
+            var el = document.getElementById('territoryInfo');
+            if ((data.state === 'success' || data.records) && data.records && data.records.length > 0) {
+                var pref = data.records[0].Preference;
+                if (pref) {
+                    try {
+                        var prefObj = (typeof pref === 'string') ? JSON.parse(pref) : pref;
+                        var name = prefObj.activeTerritoryName || prefObj.activeTerritoryId || 'No territory in preferences';
+                        el.textContent = name;
+                    } catch(e) {
+                        el.textContent = 'Error parsing preferences';
+                    }
+                } else {
+                    el.textContent = 'No preferences set';
+                }
+            } else {
+                el.textContent = 'No UserAdditionalInfo found';
+            }
+        }
+
+        // ---- Create Visit ----
+
+        function doCreateVisit() {
+            var el = document.getElementById('results');
+            el.textContent += '\n\n>>> Calling PresentationPlayer.createVisit(\'onVisitCreated\')\n\nWaiting for response...';
+            PresentationPlayer.createVisit('onVisitCreated');
+        }
+
+        function onVisitCreated(data) {
+            var el = document.getElementById('results');
+            var existing = el.textContent.replace('\n\nWaiting for response...', '');
+            var visitId = data.id;
+            if (data.state === 'success') {
+                el.textContent = existing + '\n\n<<< Success!\n' + JSON.stringify(data, null, 2);
+            } else {
+                el.textContent = existing + '\n\n<<< Error:\n' + JSON.stringify(data, null, 2);
+            }
+            // Query Visit details if we have an ID
+            if (visitId) {
+                el.textContent += '\n\n>>> Querying Visit details...';
+                try {
+                    PresentationPlayer.fetchWithParams(
+                        "SELECT Id, AccountId, Account.Name, VisitorId, Status, PlannedVisitStartTime, PlannedVisitEndTime, TerritoryId FROM Visit WHERE Id = '" + visitId + "' LIMIT 1",
+                        {'batchSize': 1}, 'onVisitQueried'
+                    );
+                } catch(e) {
+                    el.textContent += '\nQuery error: ' + e.message;
+                }
+            }
+        }
+
+        function onVisitQueried(data) {
+            var el = document.getElementById('results');
+            if ((data.state === 'success' || data.records) && data.records && data.records.length > 0) {
+                var visit = data.records[0];
+                var accountName = (visit.Account && visit.Account.Name) ? visit.Account.Name : 'N/A';
+                el.textContent += '\n\n<<< Visit Record:\n'
+                    + 'Account: ' + accountName + ' (' + (visit.AccountId || 'none') + ')\n'
+                    + 'Status: ' + (visit.Status || 'N/A') + '\n'
+                    + 'Visitor: ' + (visit.VisitorId || 'N/A') + '\n'
+                    + 'Territory: ' + (visit.TerritoryId || 'N/A') + '\n'
+                    + 'Start: ' + (visit.PlannedVisitStartTime || 'N/A') + '\n'
+                    + 'End: ' + (visit.PlannedVisitEndTime || 'N/A') + '\n'
+                    + '\nFull record:\n' + JSON.stringify(visit, null, 2);
+            } else {
+                el.textContent += '\n\n<<< Visit not found in local DB.\n' + JSON.stringify(data, null, 2);
+            }
+        }
+
+        // ---- Explain Panel ----
+
+        function toggleExplain() {
+            var panel = document.getElementById('explainPanel');
+            var overlay = document.getElementById('explainOverlay');
+            var btn = document.getElementById('explainBtn');
+            var isOpen = panel.classList.contains('open');
+            if (isOpen) {
+                panel.classList.remove('open');
+                overlay.style.display = 'none';
+                btn.classList.remove('active');
+            } else {
+                panel.classList.add('open');
+                overlay.style.display = 'block';
+                btn.classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>

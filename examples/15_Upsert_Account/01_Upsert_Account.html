@@ -36,11 +36,6 @@
         .toggle-option.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
         .toggle-option input[type="radio"] { accent-color: #3a4674; width: 16px; height: 16px; }
 
-        /* Account selector */
-        .account-selector { margin-bottom: 20px; }
-        .account-selector label { font-size: 13px; font-weight: 600; color: #3a4674; margin-bottom: 6px; display: block; }
-        .account-selector select { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; font-family: 'Montserrat', sans-serif; background: white; }
-
         /* Form */
         h2 { font-size: 18px; margin-bottom: 15px; font-weight: 600; color: #3a4674; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 30px; }
@@ -113,8 +108,7 @@
                     </label>
                 </div>
             </div>
-
-            <!-- Insert / Update toggle -->
+            <!-- Operation toggle -->
             <div class="toggle-row">
                 <span class="toggle-label">Operation</span>
                 <div class="toggle-group">
@@ -127,7 +121,7 @@
                 </div>
             </div>
 
-            <!-- Account selector (shown in Update mode) -->
+            <!-- Account selector (Update mode) -->
             <div class="account-selector" id="accountSelector" style="display:none;">
                 <label>Select Account to Update</label>
                 <select id="accountList" onchange="onAccountSelected()">
@@ -135,23 +129,21 @@
                 </select>
             </div>
 
-            <!-- Account Form -->
+            <!-- Account form fields -->
             <h2 id="formTitle">Account</h2>
             <div class="form-grid">
                 <div>
-                    <!-- Account: Name field -->
                     <div class="form-group" id="nameGroup">
                         <label>Name</label>
                         <input type="text" id="accountName" placeholder="e.g. Acme Corp" value="Acme Healthcare">
                     </div>
-                    <!-- Person Account: First Name / Last Name -->
                     <div class="form-group" id="firstNameGroup" style="display:none;">
                         <label>First Name</label>
-                        <input type="text" id="firstName" placeholder="" value="Aaron">
+                        <input type="text" id="firstName" value="Aaron">
                     </div>
                     <div class="form-group" id="lastNameGroup" style="display:none;">
                         <label>Last Name</label>
-                        <input type="text" id="lastName" placeholder="" value="Smith">
+                        <input type="text" id="lastName" value="Smith">
                     </div>
                     <div class="form-group">
                         <label>Type</label>
@@ -171,63 +163,43 @@
                         </select>
                     </div>
                 </div>
-                <div>
-                    <div class="form-group" id="birthdateGroup" style="display:none;">
-                        <label>Birthdate</label>
-                        <input type="date" id="birthdate">
-                    </div>
-                </div>
+                <div></div>
             </div>
-
             <button class="btn btn-primary" onclick="upsertAccount()">Upsert Account</button>
 
+            <!-- Results -->
             <div class="results-section">
                 <h3>RESULTS</h3>
                 <div class="results" id="results">No upsert executed yet.</div>
                 <div class="success-note" id="syncNote">
-                    <strong>Record created locally.</strong> The record has been saved to the local database. To push it to the server, the user must <strong>sync</strong> (pull down to refresh or wait for the next automatic sync cycle). Until synced, the record only exists on this device.
+                    <strong>Record(s) created locally.</strong> To push to the server, the user must <strong>sync</strong> (pull down to refresh or wait for the next automatic sync cycle). Until synced, records only exist on this device.
                 </div>
             </div>
         </div>
 
-        <!-- Explain side panel -->
+        <!-- Explain Panel -->
         <div class="explain-overlay" id="explainOverlay" onclick="toggleExplain()"></div>
         <div class="explain-panel" id="explainPanel">
             <button class="explain-close" onclick="toggleExplain()">&times;</button>
-            <h2>How Upsert Works</h2>
-            <p>Create or update Account records using <code>PresentationPlayer.upsert()</code>. Include an <code>id</code> to update; omit it to create.</p>
 
-            <h3>Syntax</h3>
-            <div class="code-block">PresentationPlayer.upsert(
-  objects,     // Array (max 15 records)
-  callbackMethod // String function name
-)</div>
-
-            <h3>Account vs Person Account</h3>
-            <p><strong>Account</strong> (business account) uses the <code>Name</code> field and supports both insert and update.</p>
-            <p><strong>Person Account</strong> uses <code>FirstName</code> and <code>LastName</code> instead of <code>Name</code>. However, all Person Account name fields (<code>FirstName</code>, <code>LastName</code>, <code>Salutation</code>, <code>MiddleName</code>, <code>Suffix</code>) and <code>PersonBirthdate</code> are <strong>blacklisted</strong> for both insert and update via upsert. Person Accounts can only be updated for non-name fields like <code>Type</code>.</p>
+            <h2>Account Upsert</h2>
+            <p>Create or update Account records. Include <code>id</code> to update; omit to create.</p>
 
             <h3>Create Account + HealthcareProvider</h3>
-            <p>When inserting a new Account, a <code>HealthcareProvider</code> record is automatically created and linked to the new Account via <code>AccountId</code>.</p>
-            <div class="code-block">// Step 1: Create the Account
-PresentationPlayer.upsert([{
+            <p>On insert, a <code>HealthcareProvider</code> is automatically created and linked to the new Account.</p>
+            <div class="code-block">PresentationPlayer.upsert([{
   'sobject': 'Account',
   'Name': 'Acme Healthcare',
   'Type': 'Customer'
 }], 'onAccountUpserted');
 
-// Step 2: In the callback, create
-// HealthcareProvider with the new Account Id
-function onAccountUpserted(data) {
-  if (data.state === 'success') {
-    var accountId = data.ids[0];
-    PresentationPlayer.upsert([{
-      'sobject': 'HealthcareProvider',
-      'AccountId': accountId,
-      'Name': 'Acme Healthcare'
-    }], 'onHCPUpserted');
-  }
-}</div>
+// In callback, create HealthcareProvider
+var accountId = data.ids[0];
+PresentationPlayer.upsert([{
+  'sobject': 'HealthcareProvider',
+  'AccountId': accountId,
+  'Name': 'Acme Healthcare'
+}], 'onHCPUpserted');</div>
 
             <h3>Update Account</h3>
             <div class="code-block">PresentationPlayer.upsert([{
@@ -235,15 +207,6 @@ function onAccountUpserted(data) {
   'id': '001xx000003DGbYAAW',
   'Name': 'Acme Healthcare Inc.',
   'Type': 'Partner'
-}], 'onAccountUpserted');</div>
-
-            <h3>Update Person Account</h3>
-            <div class="code-block">// Name fields are blacklisted — only
-// non-name fields like Type can be updated.
-PresentationPlayer.upsert([{
-  'sobject': 'Account',
-  'id': '001xx000003DGbYAAW',
-  'Type': 'Medical Doctor'
 }], 'onAccountUpserted');</div>
 
             <h3>Account Fields</h3>
@@ -255,37 +218,14 @@ PresentationPlayer.upsert([{
                 <tr><td><code>Type</code></td><td>Picklist</td><td><span class="tag tag-optional">OPTIONAL</span></td></tr>
             </table>
 
-            <h3>HealthcareProvider Fields</h3>
-            <p>Created automatically on Account insert.</p>
-            <table class="field-table">
-                <tr><th>Field</th><th>Type</th><th></th></tr>
-                <tr><td><code>sobject</code></td><td>String</td><td><span class="tag tag-required">REQUIRED</span></td></tr>
-                <tr><td><code>AccountId</code></td><td>Reference</td><td><span class="tag tag-required">REQUIRED</span></td></tr>
-                <tr><td><code>Name</code></td><td>String</td><td><span class="tag tag-optional">OPTIONAL</span></td></tr>
-            </table>
-
-            <h3>Person Account Fields</h3>
-            <table class="field-table">
-                <tr><th>Field</th><th>Type</th><th></th></tr>
-                <tr><td><code>FirstName</code></td><td>String</td><td><span class="tag tag-blocked">BLACKLISTED</span></td></tr>
-                <tr><td><code>LastName</code></td><td>String</td><td><span class="tag tag-blocked">BLACKLISTED</span></td></tr>
-                <tr><td><code>Salutation</code></td><td>Picklist</td><td><span class="tag tag-blocked">BLACKLISTED</span></td></tr>
-                <tr><td><code>MiddleName</code></td><td>String</td><td><span class="tag tag-blocked">BLACKLISTED</span></td></tr>
-                <tr><td><code>Suffix</code></td><td>String</td><td><span class="tag tag-blocked">BLACKLISTED</span></td></tr>
-                <tr><td><code>PersonBirthdate</code></td><td>Date</td><td><span class="tag tag-blocked">BLACKLISTED</span></td></tr>
-                <tr><td><code>Type</code></td><td>Picklist</td><td><span class="tag tag-optional">OPTIONAL</span></td></tr>
-            </table>
+            <h3>Person Account</h3>
+            <p>All name fields (<code>FirstName</code>, <code>LastName</code>, <code>Salutation</code>, <code>MiddleName</code>, <code>Suffix</code>) and <code>PersonBirthdate</code> are <strong>blacklisted</strong> for both insert and update. Person Accounts can only be updated for non-name fields like <code>Type</code>.</p>
 
             <div class="warning">
-                <strong>Person Accounts cannot be created via upsert.</strong> <code>FirstName</code>, <code>LastName</code>, and all other name fields return <code>OCE_UPSERT_FIELD_BLACKLISTED</code> on both insert and update. Even with a valid <code>RecordTypeId</code>, these fields are blocked. Person Accounts can only be <strong>updated</strong> for non-name fields like <code>Type</code>.
+                <strong>After upsert:</strong> Records are saved to the local database first. Sync to push to the server.
             </div>
-
-            <div class="warning">
-                <strong>After upsert:</strong> Records are saved to the local database first. The user must sync to push the record to the server. Until synced, the record only exists on this device.
-            </div>
-
             <h3>Limits</h3>
-            <p>Max <strong>15 records</strong> per call. Cannot create/update User, Record Type, Territory2, or UserTerritory2Association objects.</p>
+            <p>Max <strong>15 records</strong> per call. Cannot create/update User, Record Type, Territory2, or UserTerritory2Association.</p>
         </div>
 
         <div class="footer">
@@ -294,20 +234,34 @@ PresentationPlayer.upsert([{
     </div>
 
     <script type="text/javascript">
-        var currentAccountType = 'account'; // 'account' or 'person'
+        var currentAccountType = 'account';
         var currentMode = 'insert';
         var accountsData = [];
+        var configData = null;
+        var currentUserId = null;
+
+        // ---- Init ----
 
         document.addEventListener('PresentationDOMContentLoaded', function(event) {
-            loadAccounts();
+            configData = event.data;
+            if (configData && configData.parameters && configData.parameters.id) {
+                currentUserId = configData.parameters.id;
+            }
+            initPage();
         });
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
-                if (typeof PresentationPlayer !== 'undefined') {
-                    loadAccounts();
+                if (typeof PresentationPlayer !== 'undefined' && !currentUserId) {
+                    initPage();
                 }
             }, 500);
         });
+
+        function initPage() {
+            loadAccounts();
+        }
+
+        // ---- Account Data Loading ----
 
         function loadAccounts() {
             try {
@@ -315,31 +269,32 @@ PresentationPlayer.upsert([{
                     ? "SELECT Id, FirstName, LastName, Type FROM Account WHERE IsPersonAccount = true ORDER BY LastName LIMIT 50"
                     : "SELECT Id, Name, Type FROM Account WHERE IsPersonAccount = false ORDER BY Name LIMIT 50";
                 PresentationPlayer.fetchWithParams(query, {'batchSize': 50}, 'onAccountsLoaded');
-            } catch(e) {
-                // fetchWithParams not available (e.g. local preview)
-            }
+            } catch(e) {}
         }
 
         function onAccountsLoaded(data) {
             var select = document.getElementById('accountList');
-            select.innerHTML = '<option value="">-- Select an account --</option>';
+            select.textContent = '';
+            var defaultOpt = document.createElement('option');
+            defaultOpt.value = '';
+            defaultOpt.textContent = '-- Select an account --';
+            select.appendChild(defaultOpt);
             if (data.state === 'success' || data.records) {
                 accountsData = data.records || [];
                 accountsData.forEach(function(acc) {
                     var opt = document.createElement('option');
                     opt.value = acc.Id;
-                    var name;
-                    if (currentAccountType === 'person') {
-                        name = (acc.FirstName || '') + ' ' + (acc.LastName || '');
-                    } else {
-                        name = acc.Name || '';
-                    }
+                    var name = (currentAccountType === 'person')
+                        ? (acc.FirstName || '') + ' ' + (acc.LastName || '')
+                        : (acc.Name || '');
                     if (acc.Type) name += ' (' + acc.Type + ')';
                     opt.textContent = name.trim();
                     select.appendChild(opt);
                 });
             }
         }
+
+        // ---- Account Mode ----
 
         function setAccountType(type) {
             currentAccountType = type;
@@ -351,7 +306,6 @@ PresentationPlayer.upsert([{
                 acctEl.classList.add('active');
                 personEl.classList.remove('active');
                 acctEl.querySelector('input').checked = true;
-                // Account supports insert
                 insertEl.classList.remove('disabled');
                 insertEl.querySelector('input').disabled = false;
                 setMode('insert');
@@ -359,7 +313,6 @@ PresentationPlayer.upsert([{
                 personEl.classList.add('active');
                 acctEl.classList.remove('active');
                 personEl.querySelector('input').checked = true;
-                // Person Account: grey out insert, force update
                 insertEl.classList.add('disabled');
                 insertEl.querySelector('input').disabled = true;
                 setMode('update');
@@ -393,7 +346,6 @@ PresentationPlayer.upsert([{
             var nameGroup = document.getElementById('nameGroup');
             var fnGroup = document.getElementById('firstNameGroup');
             var lnGroup = document.getElementById('lastNameGroup');
-            var bdGroup = document.getElementById('birthdateGroup');
             var titleEl = document.getElementById('formTitle');
 
             if (currentAccountType === 'account') {
@@ -401,14 +353,11 @@ PresentationPlayer.upsert([{
                 nameGroup.style.display = 'block';
                 fnGroup.style.display = 'none';
                 lnGroup.style.display = 'none';
-                bdGroup.style.display = 'none';
             } else {
                 titleEl.textContent = 'Person Account';
                 nameGroup.style.display = 'none';
-                // Person Account in update mode: name fields are blacklisted, hide them
                 fnGroup.style.display = 'none';
                 lnGroup.style.display = 'none';
-                bdGroup.style.display = 'none';
             }
         }
 
@@ -416,7 +365,6 @@ PresentationPlayer.upsert([{
             var select = document.getElementById('accountList');
             var id = select.value;
             if (!id) { clearForm(); return; }
-
             var acc = accountsData.find(function(a) { return a.Id === id; });
             if (acc) {
                 document.getElementById('accountType').value = acc.Type || '';
@@ -431,7 +379,6 @@ PresentationPlayer.upsert([{
             document.getElementById('firstName').value = '';
             document.getElementById('lastName').value = '';
             document.getElementById('accountType').value = 'Medical Doctor';
-            document.getElementById('birthdate').value = '';
         }
 
         function upsertAccount() {
@@ -447,11 +394,9 @@ PresentationPlayer.upsert([{
             }
 
             if (currentAccountType === 'account') {
-                // Business Account: Name field works on insert and update
                 var name = document.getElementById('accountName').value;
                 if (name) record.Name = name;
             }
-            // Person Account update: only non-name fields like Type
 
             var accountType = document.getElementById('accountType').value;
             if (accountType) record.Type = accountType;
@@ -467,8 +412,6 @@ PresentationPlayer.upsert([{
             var existing = el.textContent.replace('\n\nWaiting for response...', '');
             if (data.state === 'success') {
                 el.textContent = existing + '\n\n<<< Account Response:\n' + JSON.stringify(data, null, 2);
-
-                // On insert, also create a HealthcareProvider linked to the new Account
                 if (currentMode === 'insert' && data.ids && data.ids.length > 0) {
                     var accountId = data.ids[0];
                     var hcpRecord = {
@@ -483,7 +426,6 @@ PresentationPlayer.upsert([{
                 }
             } else {
                 el.textContent = existing + '\n\n<<< Error:\n' + data.message + '\nCode: ' + data.code;
-                document.getElementById('syncNote').style.display = 'none';
             }
         }
 
@@ -497,6 +439,8 @@ PresentationPlayer.upsert([{
             }
             document.getElementById('syncNote').style.display = 'block';
         }
+
+        // ---- Explain Panel ----
 
         function toggleExplain() {
             var panel = document.getElementById('explainPanel');
