@@ -155,7 +155,7 @@
                         <div class="account-warning" id="accountLabel">No HCP selected</div>
                         <div class="account-id" id="accountDetail">Open this presentation from a visit to link survey responses</div>
                     </div>
-                    <button class="btn btn-small btn-outline" id="detectBtn" onclick="detectAccount()" style="flex-shrink:0">Detect HCP</button>
+                    <button class="btn btn-small btn-outline" id="detectBtn" onclick="reloadSlide()" style="display:none;flex-shrink:0">Reload</button>
                 </div>
                 <div class="survey-card" id="surveyCard">
                     <div class="loading" id="loadingState">
@@ -273,130 +273,62 @@
             return !!currentAccountId;
         }
 
-        function onAccountLoaded(data) {
-            if ((data.state === 'success' || data.records) && data.records && data.records.length > 0) {
-                currentAccountName = data.records[0].Name || 'Unknown';
-                log('Account: ' + currentAccountName + ' (' + currentAccountId + ')', 'log-info');
+        function reloadSlide() {
+            window.location.reload();
+        }
+
+        // Extract account from configData using the documented JSON structure:
+        //   configData.customers[] — array of account records with id, name, firstName, lastName
+        //   configData.visits[] — array of visits with id, accountId
+        function extractAccountFromConfig(cfg) {
+            if (!cfg) return;
+
+            // Primary: customers array (selected attendees)
+            if (cfg.customers && cfg.customers.length > 0) {
+                var customer = cfg.customers[0]; // primary customer
+                currentAccountId = customer.id;
+                currentAccountName = customer.name || ((customer.firstName || '') + ' ' + (customer.lastName || '')).trim() || null;
+                log('Account from customers[]: ' + (currentAccountName || currentAccountId), 'log-info');
+                log('isPrimary: ' + customer.isPrimary + ', accountType: ' + customer.accountType, 'log-dim');
                 updateAccountBanner(currentAccountName, currentAccountId);
-            } else {
-                log('Account query returned no results for ' + currentAccountId, 'log-warn');
-                updateAccountBanner(null, currentAccountId);
-            }
-        }
-
-        // Search for accountId in any nested object
-        function findAccountId(obj, depth) {
-            if (!obj || typeof obj !== 'object' || depth > 4) return null;
-            // Direct property names to check
-            var keys = ['accountId', 'AccountId', 'account_id', 'accountid'];
-            for (var i = 0; i < keys.length; i++) {
-                if (obj[keys[i]]) return obj[keys[i]];
-            }
-            // Recurse into child objects
-            var objKeys = Object.keys(obj);
-            for (var k = 0; k < objKeys.length; k++) {
-                var val = obj[objKeys[k]];
-                if (val && typeof val === 'object') {
-                    var found = findAccountId(val, (depth || 0) + 1);
-                    if (found) return found;
-                }
-            }
-            return null;
-        }
-
-        function applyAccountId(accountId) {
-            if (!accountId || currentAccountId) return;
-            currentAccountId = accountId;
-            log('Account ID detected: ' + currentAccountId, 'log-info');
-            updateAccountBanner(null, currentAccountId);
-            // Hide detect button once we have context
-            var btn = document.getElementById('detectBtn');
-            if (btn) btn.style.display = 'none';
-            try {
-                PresentationPlayer.fetchWithParams(
-                    "SELECT Id, Name FROM Account WHERE Id = '" + currentAccountId + "' LIMIT 1",
-                    {'batchSize': 1}, 'onAccountLoaded'
-                );
-            } catch(e) {
-                log('Could not query account name: ' + e.message, 'log-warn');
-            }
-        }
-
-        // Active detection: query most recent Visit to find AccountId
-        function detectAccount() {
-            if (currentAccountId) {
-                log('Account already set: ' + (currentAccountName || currentAccountId), 'log-info');
+                var btn = document.getElementById('detectBtn');
+                if (btn) btn.style.display = 'none';
                 return;
             }
-            log('=== Detect HCP: querying Visit table ===', 'log-warn');
-            try {
-                PresentationPlayer.fetchWithParams(
-                    "SELECT Id, AccountId, Account.Name FROM Visit ORDER BY LastModifiedDate DESC LIMIT 1",
-                    {'batchSize': 1}, 'onVisitDetected'
-                );
-            } catch(e) {
-                log('Visit query failed: ' + e.message, 'log-error');
-                // Fallback: try querying ProviderVisit
-                try {
-                    log('Trying ProviderVisit...', 'log-dim');
-                    PresentationPlayer.fetchWithParams(
-                        "SELECT Id, AccountId, Account.Name FROM ProviderVisit ORDER BY LastModifiedDate DESC LIMIT 1",
-                        {'batchSize': 1}, 'onVisitDetected'
-                    );
-                } catch(e2) {
-                    log('ProviderVisit query also failed: ' + e2.message, 'log-error');
+
+            // Fallback: visits array
+            if (cfg.visits && cfg.visits.length > 0) {
+                var visit = cfg.visits[0];
+                if (visit.accountId) {
+                    currentAccountId = visit.accountId;
+                    log('Account from visits[]: ' + currentAccountId, 'log-info');
+                    updateAccountBanner(null, currentAccountId);
+                    var btn = document.getElementById('detectBtn');
+                    if (btn) btn.style.display = 'none';
+                    return;
                 }
             }
+
+            log('No customers or visits with accountId in configData', 'log-warn');
+            updateAccountBanner(null, null);
         }
 
-        function onVisitDetected(data) {
-            log('Visit detect result: ' + JSON.stringify(data), 'log-data');
-            if (data && data.records && data.records.length > 0) {
-                var rec = data.records[0];
-                var acctId = rec.AccountId;
-                var acctName = (rec.Account && rec.Account.Name) ? rec.Account.Name : null;
-                if (acctId) {
-                    log('Found account from Visit: ' + (acctName || acctId), 'log-info');
-                    currentAccountId = acctId;
-                    if (acctName) {
-                        currentAccountName = acctName;
-                        updateAccountBanner(acctName, acctId);
-                        var btn = document.getElementById('detectBtn');
-                        if (btn) btn.style.display = 'none';
-                    } else {
-                        applyAccountId(acctId);
-                    }
-                } else {
-                    log('Visit found but no AccountId on it', 'log-warn');
-                }
-            } else {
-                log('No visits found in local DB', 'log-warn');
-            }
-        }
-        window.onVisitDetected = onVisitDetected;
-
-        // Listen for config data (provides accountId, visitId, userId)
+        // Listen for config data — documented JSON structure provides customers[], visits[], user, presentations[]
         document.addEventListener('PresentationDOMContentLoaded', function(event) {
-            // Try both event.data and event.detail (varies by player version)
-            configData = event.data || event.detail || {};
+            configData = event.data;
             log('=== PresentationDOMContentLoaded ===', 'log-warn');
-            log('event.data type: ' + typeof event.data + ', event.detail type: ' + typeof event.detail, 'log-dim');
-            log('Config dump: ' + JSON.stringify(configData, null, 2), 'log-data');
+            log('Config keys: ' + Object.keys(configData || {}).join(', '), 'log-dim');
 
-            // Try the standard path first
-            if (configData && configData.parameters && configData.parameters.accountId) {
-                applyAccountId(configData.parameters.accountId);
-            } else {
-                // Deep search for accountId anywhere in the config
-                var found = findAccountId(configData, 0);
-                if (found) {
-                    log('Found accountId via deep search: ' + found, 'log-info');
-                    applyAccountId(found);
-                } else {
-                    log('No accountId found in config. Full keys: ' + JSON.stringify(configData), 'log-warn');
-                    updateAccountBanner(null, null);
-                }
+            // Log relevant sections
+            if (configData) {
+                if (configData.customers) log('customers: ' + JSON.stringify(configData.customers), 'log-data');
+                if (configData.visits) log('visits: ' + JSON.stringify(configData.visits), 'log-data');
+                if (configData.user) log('user: ' + JSON.stringify(configData.user), 'log-data');
+                log('currentMode: ' + (configData.currentMode || 'N/A'), 'log-dim');
+                log('currentTerritoryName: ' + (configData.currentTerritoryName || 'N/A'), 'log-dim');
             }
+
+            extractAccountFromConfig(configData);
         });
 
         // ---- Render survey from flow JSON ----
@@ -630,9 +562,6 @@
             document.getElementById('noAccountModal').classList.remove('visible');
         }
 
-        // Make callback global for fetchWithParams
-        window.onAccountLoaded = onAccountLoaded;
-
         // ---- Init ----
         if (typeof PresentationPlayer !== 'undefined' && PresentationPlayer.registerEventListener) {
             setStatus(true, 'Connected');
@@ -668,14 +597,6 @@
             log('Listeners registered', 'log-info');
             log('Auto-loading survey...', 'log-dim');
             loadSurvey();
-
-            // Auto-detect account after a short delay (gives PresentationDOMContentLoaded time to fire first)
-            setTimeout(function() {
-                if (!currentAccountId) {
-                    log('No account from config event — trying Visit query...', 'log-warn');
-                    detectAccount();
-                }
-            }, 2000);
         } else {
             setStatus(false, 'Not in LSC app');
             log('PresentationPlayer not available', 'log-error');
