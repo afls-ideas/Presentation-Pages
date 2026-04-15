@@ -116,6 +116,17 @@
         .account-id { color: #999; font-size: 10px; font-family: 'Courier New', monospace; }
         .account-warning { color: #cc5555; font-weight: 600; }
 
+        /* Modal */
+        .modal-overlay { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; justify-content: center; align-items: center; }
+        .modal-overlay.visible { display: flex; }
+        .modal { background: white; border-radius: 16px; padding: 35px 30px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 10px 40px rgba(91,45,142,0.3); animation: modalIn 0.25s ease; }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.9) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .modal-icon { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #fff0f0, #ffe0e0); display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; font-size: 26px; color: #cc5555; }
+        .modal-title { font-size: 18px; font-weight: 700; color: #333; margin-bottom: 10px; }
+        .modal-body { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 22px; }
+        .modal-btn { padding: 12px 36px; border-radius: 30px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; background: linear-gradient(135deg, #5B2D8E, #7B48B8); color: white; transition: all 0.2s ease; }
+        .modal-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(91,45,142,0.3); }
+
         .footer { position: absolute; bottom: 0; left: 0; width: 100%; padding: 8px 40px; z-index: 10; }
         .footer-left { color: #aaa; font-size: 10px; }
     </style>
@@ -142,7 +153,7 @@
                     <div class="account-icon" id="accountIcon">?</div>
                     <div class="account-info">
                         <div class="account-warning" id="accountLabel">No HCP selected</div>
-                        <div class="account-id" id="accountDetail">Survey requires an account/visit context to save responses</div>
+                        <div class="account-id" id="accountDetail">Open this presentation from a visit to link survey responses</div>
                     </div>
                 </div>
                 <div class="survey-card" id="surveyCard">
@@ -187,6 +198,19 @@
             <div class="success-text" id="successText">Survey Submitted!</div>
             <div class="success-sub" id="successSub">Responses saved successfully</div>
             <button class="btn btn-outline" style="margin-top:20px" onclick="hideSuccess()">Back to Survey</button>
+        </div>
+
+        <!-- No Account Modal -->
+        <div class="modal-overlay" id="noAccountModal">
+            <div class="modal">
+                <div class="modal-icon">!</div>
+                <div class="modal-title">No HCP Selected</div>
+                <div class="modal-body">
+                    Survey responses cannot be saved without an HCP context.<br><br>
+                    Please open this presentation from a <strong>visit</strong> or <strong>account</strong> so responses are linked to the correct healthcare provider.
+                </div>
+                <button class="modal-btn" onclick="closeModal()">Got It</button>
+            </div>
         </div>
 
         <div class="footer">
@@ -240,7 +264,7 @@
                 icon.textContent = '!';
                 label.className = 'account-warning';
                 label.textContent = 'No HCP selected';
-                detail.textContent = 'Survey requires an account/visit context to save responses';
+                detail.textContent = 'Open this presentation from a visit to link survey responses';
             }
         }
 
@@ -259,29 +283,60 @@
             }
         }
 
+        // Search for accountId in any nested object
+        function findAccountId(obj, depth) {
+            if (!obj || typeof obj !== 'object' || depth > 4) return null;
+            // Direct property names to check
+            var keys = ['accountId', 'AccountId', 'account_id', 'accountid'];
+            for (var i = 0; i < keys.length; i++) {
+                if (obj[keys[i]]) return obj[keys[i]];
+            }
+            // Recurse into child objects
+            var objKeys = Object.keys(obj);
+            for (var k = 0; k < objKeys.length; k++) {
+                var val = obj[objKeys[k]];
+                if (val && typeof val === 'object') {
+                    var found = findAccountId(val, (depth || 0) + 1);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        function applyAccountId(accountId) {
+            if (!accountId || currentAccountId) return;
+            currentAccountId = accountId;
+            log('Account ID detected: ' + currentAccountId, 'log-info');
+            updateAccountBanner(null, currentAccountId);
+            try {
+                PresentationPlayer.fetchWithParams(
+                    "SELECT Id, Name FROM Account WHERE Id = '" + currentAccountId + "' LIMIT 1",
+                    {'batchSize': 1}, 'onAccountLoaded'
+                );
+            } catch(e) {
+                log('Could not query account name: ' + e.message, 'log-warn');
+            }
+        }
+
         // Listen for config data (provides accountId, visitId, userId)
         document.addEventListener('PresentationDOMContentLoaded', function(event) {
-            configData = event.data;
+            // Try both event.data and event.detail (varies by player version)
+            configData = event.data || event.detail || {};
             log('=== PresentationDOMContentLoaded ===', 'log-warn');
-            log('Config keys: ' + Object.keys(configData || {}).join(', '), 'log-dim');
-            if (configData && configData.parameters) {
-                var p = configData.parameters;
-                log('Parameters: ' + JSON.stringify(p), 'log-data');
-                if (p.accountId) {
-                    currentAccountId = p.accountId;
-                    log('Account ID detected: ' + currentAccountId, 'log-info');
-                    updateAccountBanner(null, currentAccountId);
-                    // Query account name
-                    try {
-                        PresentationPlayer.fetchWithParams(
-                            "SELECT Id, Name FROM Account WHERE Id = '" + currentAccountId + "' LIMIT 1",
-                            {'batchSize': 1}, 'onAccountLoaded'
-                        );
-                    } catch(e) {
-                        log('Could not query account name: ' + e.message, 'log-warn');
-                    }
+            log('event.data type: ' + typeof event.data + ', event.detail type: ' + typeof event.detail, 'log-dim');
+            log('Config dump: ' + JSON.stringify(configData, null, 2), 'log-data');
+
+            // Try the standard path first
+            if (configData && configData.parameters && configData.parameters.accountId) {
+                applyAccountId(configData.parameters.accountId);
+            } else {
+                // Deep search for accountId anywhere in the config
+                var found = findAccountId(configData, 0);
+                if (found) {
+                    log('Found accountId via deep search: ' + found, 'log-info');
+                    applyAccountId(found);
                 } else {
-                    log('No accountId in config parameters', 'log-warn');
+                    log('No accountId found in config. Full keys: ' + JSON.stringify(configData), 'log-warn');
                     updateAccountBanner(null, null);
                 }
             }
@@ -423,15 +478,16 @@
         function saveDraft() {
             if (!hasAccountContext()) {
                 log('BLOCKED: No account context. Cannot save survey without an HCP selected.', 'log-error');
-                alert('No HCP selected. Please open this presentation from a visit or account context to save survey responses.');
+                showNoAccountModal();
                 return;
             }
             log('=== setSurveyFlowJson (save) ===', 'log-warn');
             log('Account: ' + (currentAccountName || currentAccountId), 'log-dim');
-            var payload = buildPayload();
-            log('Payload: ' + JSON.stringify(payload).substring(0, 300), 'log-data');
+            var modifiedFlow = buildPayload();
+            log('Modified flow JSON (first 500 chars):', 'log-dim');
+            log(JSON.stringify(modifiedFlow).substring(0, 500), 'log-data');
             try {
-                PresentationPlayer.setSurveyFlowJson(surveyFlowData, 'save');
+                PresentationPlayer.setSurveyFlowJson(modifiedFlow, 'save');
                 log('Draft saved successfully', 'log-info');
                 showSuccess('Draft Saved!', 'Responses saved for ' + (currentAccountName || 'this HCP') + '. You can resume later.');
             } catch(e) {
@@ -442,15 +498,16 @@
         function submitFinal() {
             if (!hasAccountContext()) {
                 log('BLOCKED: No account context. Cannot submit survey without an HCP selected.', 'log-error');
-                alert('No HCP selected. Please open this presentation from a visit or account context to submit survey responses.');
+                showNoAccountModal();
                 return;
             }
             log('=== setSurveyFlowJson (submit) ===', 'log-warn');
             log('Account: ' + (currentAccountName || currentAccountId), 'log-dim');
-            var payload = buildPayload();
-            log('Payload: ' + JSON.stringify(payload).substring(0, 300), 'log-data');
+            var modifiedFlow = buildPayload();
+            log('Modified flow JSON (first 500 chars):', 'log-dim');
+            log(JSON.stringify(modifiedFlow).substring(0, 500), 'log-data');
             try {
-                PresentationPlayer.setSurveyFlowJson(surveyFlowData, 'submit');
+                PresentationPlayer.setSurveyFlowJson(modifiedFlow, 'submit');
                 log('Survey submitted (final)', 'log-info');
                 showSuccess('Survey Submitted!', 'Thank you for your feedback, ' + (currentAccountName || '') + '.');
             } catch(e) {
@@ -459,14 +516,45 @@
         }
 
         function buildPayload() {
-            var payload = { responses: [] };
-            for (var qid in responses) {
-                if (responses[qid]) {
-                    payload.responses.push({ questionId: qid, answer: responses[qid] });
+            // Deep copy the flow data so we don't mutate the original
+            var data = JSON.parse(JSON.stringify(surveyFlowData));
+            var injected = 0;
+
+            // Inject responses into screen fields
+            var screens = data.screens || [];
+            for (var s = 0; s < screens.length; s++) {
+                var fields = screens[s].fields || [];
+                for (var f = 0; f < fields.length; f++) {
+                    var field = fields[f];
+                    var qId = field.name;
+                    if (qId && responses[qId] !== undefined && responses[qId] !== '') {
+                        // Set the value on the field
+                        field.value = responses[qId];
+                        // Also set fieldValue and defaultValue for compatibility
+                        field.fieldValue = responses[qId];
+                        field.defaultValue = responses[qId];
+                        // For choice fields, also set the selectedChoiceValue
+                        if (field.choiceReferences && field.choiceReferences.length > 0) {
+                            // Find the matching choice reference name for this answer
+                            var choices = data.choices || [];
+                            for (var ch = 0; ch < choices.length; ch++) {
+                                var choiceText = choices[ch].choiceText || choices[ch].label || '';
+                                if (choiceText === responses[qId]) {
+                                    field.value = choices[ch].name;
+                                    field.fieldValue = choices[ch].name;
+                                    field.selectedChoiceValue = choices[ch].name;
+                                    break;
+                                }
+                            }
+                        }
+                        injected++;
+                        log('Injected: ' + qId.substring(0, 30) + '... = ' + responses[qId], 'log-dim');
+                    }
                 }
             }
-            log('Collected ' + payload.responses.length + ' response(s)', 'log-dim');
-            return payload;
+
+            log('Injected ' + injected + ' response(s) into flow JSON', 'log-info');
+            return data;
         }
 
         function showSuccess(title, sub) {
@@ -476,6 +564,13 @@
         }
         function hideSuccess() {
             document.getElementById('successOverlay').classList.remove('visible');
+        }
+
+        function showNoAccountModal() {
+            document.getElementById('noAccountModal').classList.add('visible');
+        }
+        function closeModal() {
+            document.getElementById('noAccountModal').classList.remove('visible');
         }
 
         // Make callback global for fetchWithParams
