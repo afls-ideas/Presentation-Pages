@@ -3,214 +3,525 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>configData Debug</title>
+    <title>HCP Visit Survey</title>
     <script src="js/jquery.min.js"></script>
     <style>
         @import url('fonts/montserrat.css');
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
         body { width: 100%; height: 100vh; overflow: hidden; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; }
-        .slide { width: 100%; height: 100%; max-width: 2388px; max-height: 1668px; position: relative; background: white; overflow: hidden; border-radius: 12px; }
-        .content-container { position: relative; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; grid-template-areas: "header header" "left right"; height: 100%; padding: 40px; gap: 30px; }
-        .header { grid-area: header; display: flex; justify-content: space-between; align-items: center; }
-        .page-title { font-size: 24px; font-weight: 600; color: #3a4674; }
-        .left-panel { grid-area: left; color: #333; padding-right: 20px; overflow-y: auto; }
-        .right-panel { grid-area: right; color: #333; overflow-y: auto; }
-        h2 { font-size: 22px; margin-bottom: 15px; font-weight: 600; color: #3a4674; }
-        h3 { font-size: 15px; margin-bottom: 10px; color: #3a4674; font-weight: 600; }
-        .section { margin-bottom: 20px; }
-        .description { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 10px; }
-        .btn { display: inline-block; padding: 10px 20px; border-radius: 30px; border: none; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.3s ease; margin: 5px 5px 5px 0; }
-        .btn-primary { background: linear-gradient(135deg, #3a4674, #5b6bb0); color: white; }
-        .btn-secondary { background: linear-gradient(135deg, #66CDAA, #4db896); color: white; }
-        .results { background: #1e1e2e; color: #66CDAA; padding: 12px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 11px; min-height: 60px; margin: 10px 0; max-height: 300px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
-        .note { background: linear-gradient(135deg, #f0f4ff, #fff); padding: 12px; border-radius: 8px; border-left: 4px solid #66CDAA; font-size: 12px; color: #555; margin: 10px 0; }
-        .footer { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-between; padding: 15px 40px; z-index: 10; background: linear-gradient(to top, rgba(245,247,255,0.8), transparent); }
-        .footer-left { color: #777; font-size: 11px; }
+        .slide { width: 100%; height: 100%; max-width: 2388px; max-height: 1668px; position: relative; background: linear-gradient(135deg, #f6f2ff 0%, #ede8f7 100%); overflow: hidden; }
+
+        /* Header */
+        .header { padding: 30px 40px 0; display: flex; justify-content: space-between; align-items: center; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #5B2D8E, #8B5FC7); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; font-weight: 700; }
+        .page-title { font-size: 22px; font-weight: 700; color: #5B2D8E; }
+        .page-subtitle { font-size: 12px; color: #888; font-weight: 400; }
+        .header-actions { display: flex; gap: 8px; }
+
+        /* Main layout */
+        .main { display: flex; height: calc(100% - 80px); padding: 20px 40px 15px; gap: 25px; }
+
+        /* Left: Survey form */
+        .survey-panel { flex: 1; display: flex; flex-direction: column; }
+        .survey-card { background: white; border-radius: 16px; padding: 30px; flex: 1; overflow-y: auto; box-shadow: 0 2px 20px rgba(91,45,142,0.08); }
+        .survey-welcome { text-align: center; padding: 20px 0 25px; border-bottom: 1px solid #ede8f7; margin-bottom: 25px; }
+        .survey-welcome h2 { font-size: 18px; color: #5B2D8E; margin-bottom: 6px; }
+        .survey-welcome p { font-size: 12px; color: #888; }
+
+        /* Questions */
+        .question { margin-bottom: 28px; animation: fadeIn 0.4s ease; }
+        .question-number { display: inline-block; width: 28px; height: 28px; background: linear-gradient(135deg, #5B2D8E, #8B5FC7); color: white; border-radius: 50%; text-align: center; line-height: 28px; font-size: 13px; font-weight: 600; margin-right: 10px; }
+        .question-label { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 12px; display: flex; align-items: flex-start; }
+        .question-label span { padding-top: 3px; }
+        .question-type { font-size: 10px; color: #8B5FC7; background: #f3eefa; padding: 2px 8px; border-radius: 10px; margin-left: 8px; white-space: nowrap; align-self: center; }
+
+        /* Slider/Rating */
+        .rating-container { display: flex; align-items: center; gap: 15px; padding: 5px 0; }
+        .rating-slider { flex: 1; -webkit-appearance: none; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #e8ddf5, #8B5FC7); outline: none; }
+        .rating-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #5B2D8E, #8B5FC7); cursor: pointer; box-shadow: 0 2px 8px rgba(91,45,142,0.35); }
+        .rating-value { font-size: 24px; font-weight: 700; color: #5B2D8E; min-width: 35px; text-align: center; }
+        .rating-labels { display: flex; justify-content: space-between; font-size: 10px; color: #999; margin-top: 4px; }
+
+        /* Picklist / Radio */
+        .choice-list { display: flex; flex-direction: column; gap: 8px; }
+        .choice-item { display: flex; align-items: center; padding: 12px 16px; background: #f9f5ff; border: 2px solid transparent; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; }
+        .choice-item:hover { background: #f0e8fa; border-color: rgba(139,95,199,0.25); }
+        .choice-item.selected { background: linear-gradient(135deg, rgba(91,45,142,0.08), rgba(139,95,199,0.14)); border-color: #8B5FC7; }
+        .choice-radio { width: 20px; height: 20px; border: 2px solid #ccc; border-radius: 50%; margin-right: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s ease; }
+        .choice-item.selected .choice-radio { border-color: #5B2D8E; }
+        .choice-item.selected .choice-radio::after { content: ''; width: 10px; height: 10px; background: #5B2D8E; border-radius: 50%; }
+        .choice-text { font-size: 13px; color: #333; }
+
+        /* Text input */
+        .text-input { width: 100%; padding: 14px 16px; border: 2px solid #e8ddf5; border-radius: 10px; font-size: 13px; font-family: 'Montserrat', sans-serif; resize: vertical; min-height: 80px; transition: border-color 0.2s ease; }
+        .text-input:focus { outline: none; border-color: #8B5FC7; }
+
+        /* Action buttons */
+        .survey-actions { display: flex; gap: 10px; padding-top: 15px; justify-content: center; }
+        .btn { padding: 12px 28px; border-radius: 30px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+        .btn-save { background: linear-gradient(135deg, #A678D6, #8B5FC7); color: white; }
+        .btn-submit { background: linear-gradient(135deg, #5B2D8E, #7B48B8); color: white; }
+        .btn-small { padding: 6px 14px; font-size: 11px; border-radius: 20px; }
+        .btn-outline { background: white; color: #5B2D8E; border: 2px solid #5B2D8E; }
+
+        /* Right: Console */
+        .console-panel { width: 380px; display: flex; flex-direction: column; }
+        .console-card { background: #1a1028; border-radius: 16px; flex: 1; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 2px 20px rgba(91,45,142,0.25); }
+        .console-header { padding: 12px 16px; background: #150e22; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d1f45; }
+        .console-title { color: #888; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+        .console-dots { display: flex; gap: 6px; }
+        .console-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .console-dot.red { background: #ff5f57; }
+        .console-dot.yellow { background: #ffbd2e; }
+        .console-dot.green { background: #8B5FC7; }
+        .console-body { padding: 12px 16px; flex: 1; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.6; }
+        .console-body .log-info { color: #b388ff; }
+        .console-body .log-warn { color: #ffaa00; }
+        .console-body .log-error { color: #ff4444; }
+        .console-body .log-data { color: #ce93d8; }
+        .console-body .log-dim { color: #555; }
+
+        /* Status indicator */
+        .status-bar { padding: 8px 16px; background: #150e22; border-top: 1px solid #2d1f45; display: flex; justify-content: space-between; align-items: center; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .status-dot.connected { background: #28c840; }
+        .status-dot.disconnected { background: #ff5f57; }
+        .status-text { color: #666; font-size: 10px; }
+
+        /* Loading state */
+        .loading { text-align: center; padding: 60px 20px; }
+        .loading-spinner { width: 40px; height: 40px; border: 3px solid #e8ddf5; border-top: 3px solid #5B2D8E; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 15px; }
+        .loading p { color: #888; font-size: 13px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Success overlay */
+        .success-overlay { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.95); z-index: 100; justify-content: center; align-items: center; flex-direction: column; }
+        .success-overlay.visible { display: flex; }
+        .success-icon { font-size: 60px; margin-bottom: 15px; }
+        .success-text { font-size: 20px; font-weight: 600; color: #5B2D8E; }
+        .success-sub { font-size: 13px; color: #888; margin-top: 8px; }
+
+
+
+        .footer { position: absolute; bottom: 0; left: 0; width: 100%; padding: 8px 40px; z-index: 10; }
+        .footer-left { color: #aaa; font-size: 10px; }
     </style>
 </head>
 <body>
     <div class="slide">
-        <div class="content-container">
-            <div class="header">
-                <div class="page-title">configData &amp; Account Debug</div>
+        <div class="header">
+            <div class="header-left">
+                <div class="logo-icon">Ix</div>
+                <div>
+                    <div class="page-title">Immunexis HCP Survey</div>
+                    <div class="page-subtitle">getSurveyFlowJson &amp; setSurveyFlowJson Demo</div>
+                </div>
             </div>
-
-            <div class="left-panel">
-                <h2>configData</h2>
-                <p class="description">Inspect what PresentationDOMContentLoaded provides.</p>
-
-                <div class="section">
-                    <button class="btn btn-primary" onclick="showConfigData()">Show configData</button>
-                    <button class="btn btn-secondary" onclick="showCustomers()">Show customers[]</button>
-                    <button class="btn btn-secondary" onclick="showVisits()">Show visits[]</button>
-                    <button class="btn btn-secondary" onclick="showUser()">Show user</button>
-                </div>
-
-                <h3>configData STATUS</h3>
-                <div class="results" id="configStatus">Waiting...</div>
-
-                <h3>configData FULL DUMP</h3>
-                <div class="results" id="configDump" style="max-height:400px">Waiting...</div>
-            </div>
-
-            <div class="right-panel">
-                <h2>Account Query</h2>
-                <p class="description">Query accounts via fetchWithParams to verify data access.</p>
-
-                <div class="section">
-                    <button class="btn btn-primary" onclick="queryAccounts()">Query Accounts</button>
-                    <button class="btn btn-secondary" onclick="queryVisits()">Query Visits</button>
-                </div>
-
-                <h3>QUERY RESULTS</h3>
-                <div class="results" id="queryResults">No query executed yet.</div>
-
-                <div class="note">
-                    <strong>Goal:</strong> Confirm we can read account/customer data from configData or via SOQL query. Once confirmed, we layer back survey functionality.
-                </div>
-
-                <h3>EVENT LOG</h3>
-                <div class="results" id="eventLog" style="max-height:200px"></div>
+            <div class="header-actions">
+                <button class="btn btn-small btn-outline" onclick="loadSurvey()">Reload Survey</button>
             </div>
         </div>
+
+        <div class="main">
+            <!-- Survey Form -->
+            <div class="survey-panel">
+                <div class="survey-card" id="surveyCard">
+                    <div class="loading" id="loadingState">
+                        <div class="loading-spinner"></div>
+                        <p>Loading survey flow...</p>
+                        <p style="font-size:11px;color:#aaa;margin-top:5px">Calling getSurveyFlowJson({developerName: "visit_survey"})</p>
+                    </div>
+                </div>
+                <div class="survey-actions" id="surveyActions" style="display:none">
+                    <button class="btn btn-save" onclick="saveDraft()">Save Draft</button>
+                    <button class="btn btn-submit" onclick="submitFinal()">Submit Survey</button>
+                </div>
+            </div>
+
+            <!-- Console -->
+            <div class="console-panel">
+                <div class="console-card">
+                    <div class="console-header">
+                        <span class="console-title">Console</span>
+                        <div class="console-dots">
+                            <div class="console-dot red"></div>
+                            <div class="console-dot yellow"></div>
+                            <div class="console-dot green"></div>
+                        </div>
+                    </div>
+                    <div class="console-body" id="console"></div>
+                    <div class="status-bar">
+                        <span>
+                            <span class="status-dot" id="statusDot"></span>
+                            <span class="status-text" id="statusText">Initializing...</span>
+                        </span>
+                        <span class="status-text" id="surveyId"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success overlay -->
+        <div class="success-overlay" id="successOverlay">
+            <div class="success-icon">&#10003;</div>
+            <div class="success-text" id="successText">Survey Submitted!</div>
+            <div class="success-sub" id="successSub">Responses saved successfully</div>
+            <button class="btn btn-outline" style="margin-top:20px" onclick="hideSuccess()">Back to Survey</button>
+        </div>
+
         <div class="footer">
-            <div class="footer-left">&copy; 2025 Makana Pharma Inc. All rights reserved.</div>
+            <div class="footer-left">&copy; 2025 Makana Pharma Inc.</div>
         </div>
     </div>
 
     <script type="text/javascript">
-        var configData;
-        document.addEventListener('PresentationDOMContentLoaded', function(event) {
-            configData = event.data;
-            elog('PresentationDOMContentLoaded FIRED');
-            elog('event.data type: ' + typeof event.data);
-            elog('event.data keys: ' + (event.data ? Object.keys(event.data).join(', ') : 'N/A'));
-            document.getElementById('configStatus').textContent = 'EVENT FIRED! configData captured.';
-        });
+        var surveyFlowData = null;
+        var responses = {};
+        var consoleEl = document.getElementById('console');
 
-        // Also try alternate event names
-        document.addEventListener('presentationdomcontentloaded', function(event) {
-            elog('presentationdomcontentloaded (lowercase) FIRED');
-        });
-        window.addEventListener('PresentationDOMContentLoaded', function(event) {
-            elog('window.PresentationDOMContentLoaded FIRED');
-            if (!configData && event.data) { configData = event.data; }
-        });
-        document.addEventListener('DOMContentLoaded', function(event) {
-            elog('DOMContentLoaded FIRED');
-        });
-
-        function elog(msg) {
-            var el = document.getElementById('eventLog');
+        function log(msg, cls) {
             var ts = new Date().toLocaleTimeString();
-            el.textContent = (el.textContent || '') + '[' + ts + '] ' + msg + '\n';
-            el.scrollTop = el.scrollHeight;
+            var line = document.createElement('div');
+            line.className = cls || 'log-info';
+            line.textContent = '[' + ts + '] ' + msg;
+            consoleEl.appendChild(line);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
         }
 
-        function showConfigData() {
-            var statusEl = document.getElementById('configStatus');
-            var dumpEl = document.getElementById('configDump');
+        function setStatus(connected, text) {
+            var dot = document.getElementById('statusDot');
+            dot.className = 'status-dot ' + (connected ? 'connected' : 'disconnected');
+            document.getElementById('statusText').textContent = text;
+        }
 
-            statusEl.textContent = '';
-            statusEl.textContent += 'typeof configData: ' + typeof configData + '\n';
-            statusEl.textContent += 'configData === null: ' + (configData === null) + '\n';
-            statusEl.textContent += 'configData === undefined: ' + (configData === undefined) + '\n';
+        // ---- Render survey from flow JSON ----
+        function renderSurvey(flowData) {
+            var card = document.getElementById('surveyCard');
+            var html = '';
 
-            if (configData) {
-                statusEl.textContent += 'keys: ' + Object.keys(configData).join(', ') + '\n';
-                statusEl.textContent += 'has customers: ' + !!configData.customers + '\n';
-                statusEl.textContent += 'has visits: ' + !!configData.visits + '\n';
-                statusEl.textContent += 'has user: ' + !!configData.user + '\n';
-                statusEl.textContent += 'has parameters: ' + !!configData.parameters + '\n';
-                dumpEl.textContent = JSON.stringify(configData, null, 2);
-            } else {
-                statusEl.textContent += '\nconfigData not available.\n';
-                statusEl.textContent += 'PresentationDOMContentLoaded may not have fired.\n';
-                dumpEl.textContent = 'null / undefined';
+            // Welcome
+            html += '<div class="survey-welcome">';
+            html += '<h2>' + (flowData.label || 'Survey') + '</h2>';
+            html += '<p>Please take a moment to share your feedback</p>';
+            html += '</div>';
+
+            // Parse screens to extract questions
+            var screens = flowData.screens || [];
+            var choices = flowData.choices || [];
+            var qNum = 0;
+
+            for (var s = 0; s < screens.length; s++) {
+                var screen = screens[s];
+                var fields = screen.fields || [];
+                for (var f = 0; f < fields.length; f++) {
+                    var field = fields[f];
+                    // Skip non-input fields (display text, etc)
+                    if (field.fieldType === 'DisplayText') continue;
+
+                    qNum++;
+                    var qId = field.name || ('q' + qNum);
+                    var label = field.fieldText || field.name || 'Question ' + qNum;
+                    var fieldType = field.fieldType || '';
+
+                    html += '<div class="question">';
+                    html += '<div class="question-label">';
+                    html += '<div class="question-number">' + qNum + '</div>';
+                    html += '<span>' + label + '</span>';
+                    html += '<span class="question-type">' + fieldType + '</span>';
+                    html += '</div>';
+
+                    if (fieldType === 'Slider' || field.dataType === 'Number' || field.scale) {
+                        // Rating slider
+                        var min = 0, max = 10, step = 1;
+                        if (field.scale) { max = parseInt(field.scale) || 10; }
+                        html += '<div class="rating-container">';
+                        html += '<input type="range" class="rating-slider" min="' + min + '" max="' + max + '" step="' + step + '" value="5" ';
+                        html += 'data-qid="' + qId + '" oninput="updateRating(this)">';
+                        html += '<div class="rating-value" id="rv_' + qId + '">5</div>';
+                        html += '</div>';
+                        html += '<div class="rating-labels"><span>Low</span><span>High</span></div>';
+                        responses[qId] = '5';
+
+                    } else if (field.choiceReferences && field.choiceReferences.length > 0) {
+                        // Picklist with choices
+                        html += '<div class="choice-list">';
+                        for (var c = 0; c < field.choiceReferences.length; c++) {
+                            var choiceRef = field.choiceReferences[c];
+                            // Find the choice label from the choices array
+                            var choiceLabel = choiceRef;
+                            for (var ch = 0; ch < choices.length; ch++) {
+                                if (choices[ch].name === choiceRef) {
+                                    choiceLabel = choices[ch].choiceText || choices[ch].label || choiceRef;
+                                    break;
+                                }
+                            }
+                            html += '<div class="choice-item" data-qid="' + qId + '" data-val="' + choiceLabel + '" onclick="selectChoice(this)">';
+                            html += '<div class="choice-radio"></div>';
+                            html += '<div class="choice-text">' + choiceLabel + '</div>';
+                            html += '</div>';
+                        }
+                        html += '</div>';
+
+                    } else {
+                        // Free text
+                        html += '<textarea class="text-input" data-qid="' + qId + '" placeholder="Type your response here..." oninput="updateText(this)"></textarea>';
+                    }
+
+                    html += '</div>';
+                }
+            }
+
+            // If no screens found, show raw keys for debugging
+            if (qNum === 0) {
+                html += '<div style="padding:20px;color:#888;font-size:12px;">';
+                html += '<p>Flow JSON keys: ' + Object.keys(flowData).join(', ') + '</p>';
+                html += '<p style="margin-top:10px">Screens found: ' + screens.length + '</p>';
+                for (var s = 0; s < screens.length; s++) {
+                    html += '<p>Screen ' + s + ' fields: ' + (screens[s].fields || []).length + '</p>';
+                }
+                html += '</div>';
+            }
+
+            card.innerHTML = html;
+            document.getElementById('surveyActions').style.display = 'flex';
+            log('Rendered ' + qNum + ' question(s)', 'log-info');
+        }
+
+        function updateRating(el) {
+            var qid = el.getAttribute('data-qid');
+            responses[qid] = el.value;
+            document.getElementById('rv_' + qid).textContent = el.value;
+        }
+
+        function selectChoice(el) {
+            var qid = el.getAttribute('data-qid');
+            var val = el.getAttribute('data-val');
+            // Deselect siblings
+            var siblings = el.parentElement.children;
+            for (var i = 0; i < siblings.length; i++) {
+                siblings[i].classList.remove('selected');
+            }
+            el.classList.add('selected');
+            responses[qid] = val;
+            log('Q "' + qid.substring(0, 20) + '..." = ' + val, 'log-dim');
+        }
+
+        function updateText(el) {
+            var qid = el.getAttribute('data-qid');
+            responses[qid] = el.value;
+        }
+
+        // ---- API calls ----
+        function loadSurvey() {
+            log('=== getSurveyFlowJson ===', 'log-warn');
+            var arg = {developerName: 'visit_survey'};
+            log('Calling with: ' + JSON.stringify(arg), 'log-data');
+            document.getElementById('surveyCard').innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>Loading survey flow...</p></div>';
+            document.getElementById('surveyActions').style.display = 'none';
+            try {
+                PresentationPlayer.getSurveyFlowJson(arg);
+                log('Request sent. Awaiting surveyflowjsonloaded...', 'log-info');
+            } catch(e) {
+                log('ERROR: ' + e.message, 'log-error');
+                setStatus(false, 'Error');
             }
         }
 
-        function showCustomers() {
-            var el = document.getElementById('configDump');
-            if (configData && configData.customers) {
-                el.textContent = 'customers[]: ' + JSON.stringify(configData.customers, null, 2);
-            } else {
-                el.textContent = configData ? 'configData exists but no customers[] key' : 'configData is undefined';
+
+        function saveDraft() {
+            log('=== setSurveyFlowJson (save) ===', 'log-warn');
+            log('Responses: ' + JSON.stringify(responses), 'log-data');
+            var modifiedFlow = buildPayload();
+            try {
+                PresentationPlayer.setSurveyFlowJson(modifiedFlow, 'save');
+                log('setSurveyFlowJson(data, "save") called OK', 'log-info');
+                showSuccess('Draft Saved!', 'Responses saved. You can resume later.');
+                // Query for records after a delay
+                setTimeout(function() { querySurveyRecords('save'); }, 2000);
+            } catch(e) {
+                log('ERROR: ' + e.message, 'log-error');
             }
         }
 
-        function showVisits() {
-            var el = document.getElementById('configDump');
-            if (configData && configData.visits) {
-                el.textContent = 'visits[]: ' + JSON.stringify(configData.visits, null, 2);
-            } else {
-                el.textContent = configData ? 'configData exists but no visits[] key' : 'configData is undefined';
+        function submitFinal() {
+            log('=== setSurveyFlowJson (submit) ===', 'log-warn');
+            log('Responses: ' + JSON.stringify(responses), 'log-data');
+            var modifiedFlow = buildPayload();
+            log('Modified flow (first 500 chars):', 'log-dim');
+            log(JSON.stringify(modifiedFlow).substring(0, 500), 'log-data');
+            try {
+                PresentationPlayer.setSurveyFlowJson(modifiedFlow, 'submit');
+                log('setSurveyFlowJson(data, "submit") called OK', 'log-info');
+                showSuccess('Survey Submitted!', 'Thank you for your feedback.');
+                // Query for records after a delay
+                setTimeout(function() { querySurveyRecords('submit'); }, 2000);
+            } catch(e) {
+                log('ERROR: ' + e.message, 'log-error');
             }
         }
 
-        function showUser() {
-            var el = document.getElementById('configDump');
-            if (configData && configData.user) {
-                el.textContent = 'user: ' + JSON.stringify(configData.user, null, 2);
-            } else {
-                el.textContent = configData ? 'configData exists but no user key' : 'configData is undefined';
+        // After save/submit, query all survey-related objects to see what was created
+        function querySurveyRecords(action) {
+            log('=== Querying survey records after ' + action + ' ===', 'log-warn');
+
+            var queries = [
+                { label: 'SurveyResponse', soql: 'SELECT Id, SurveyId, SurveyVersionId, Status, CreatedDate FROM SurveyResponse ORDER BY CreatedDate DESC LIMIT 3' },
+                { label: 'SurveyQstnResponseOffline', soql: 'SELECT Id, QuestionId, ResponseValue, SurveyResponseId FROM SurveyQstnResponseOffline ORDER BY CreatedDate DESC LIMIT 5' },
+                { label: 'SurveyQuestionResponse', soql: 'SELECT Id, QuestionId, ResponseValue, SurveyResponseId FROM SurveyQuestionResponse ORDER BY CreatedDate DESC LIMIT 5' },
+                { label: 'SurveyInvitation', soql: 'SELECT Id, SurveyId, ParticipantId, ResponseStatus FROM SurveyInvitation ORDER BY CreatedDate DESC LIMIT 3' },
+                { label: 'SurveySubject', soql: 'SELECT Id, SurveyInvitationId, SubjectId, SubjectEntityType FROM SurveySubject ORDER BY CreatedDate DESC LIMIT 3' }
+            ];
+
+            for (var i = 0; i < queries.length; i++) {
+                (function(q) {
+                    log('Querying ' + q.label + '...', 'log-dim');
+                    try {
+                        PresentationPlayer.fetchWithParams(
+                            q.soql,
+                            {'batchSize': 5},
+                            'onSurveyQuery_' + q.label
+                        );
+                    } catch(e) {
+                        log(q.label + ' query error: ' + e.message, 'log-error');
+                    }
+                })(queries[i]);
             }
         }
 
-        function queryAccounts() {
-            document.getElementById('queryResults').textContent = 'Querying accounts...';
-            PresentationPlayer.fetchWithParams(
-                'SELECT Id, Name FROM Account LIMIT 10',
-                {'batchSize': 10},
-                'onAccountsResult'
-            );
+        // Dynamic callbacks for survey record queries
+        function makeSurveyCallback(label) {
+            return function(data) {
+                if (data && data.records && data.records.length > 0) {
+                    log(label + ': ' + data.records.length + ' record(s) found', 'log-info');
+                    log(JSON.stringify(data.records, null, 2), 'log-data');
+                } else if (data && data.totalSize === 0) {
+                    log(label + ': 0 records', 'log-warn');
+                } else {
+                    log(label + ': ' + JSON.stringify(data), 'log-error');
+                }
+            };
+        }
+        window.onSurveyQuery_SurveyResponse = makeSurveyCallback('SurveyResponse');
+        window.onSurveyQuery_SurveyQstnResponseOffline = makeSurveyCallback('SurveyQstnResponseOffline');
+        window.onSurveyQuery_SurveyQuestionResponse = makeSurveyCallback('SurveyQuestionResponse');
+        window.onSurveyQuery_SurveyInvitation = makeSurveyCallback('SurveyInvitation');
+        window.onSurveyQuery_SurveySubject = makeSurveyCallback('SurveySubject');
+
+        function buildPayload() {
+            // Deep copy the flow data so we don't mutate the original
+            var data = JSON.parse(JSON.stringify(surveyFlowData));
+            var injected = 0;
+
+            // Inject responses into screen fields
+            var screens = data.screens || [];
+            for (var s = 0; s < screens.length; s++) {
+                var fields = screens[s].fields || [];
+                for (var f = 0; f < fields.length; f++) {
+                    var field = fields[f];
+                    var qId = field.name;
+                    if (qId && responses[qId] !== undefined && responses[qId] !== '') {
+                        // Set the value on the field
+                        field.value = responses[qId];
+                        // Also set fieldValue and defaultValue for compatibility
+                        field.fieldValue = responses[qId];
+                        field.defaultValue = responses[qId];
+                        // For choice fields, also set the selectedChoiceValue
+                        if (field.choiceReferences && field.choiceReferences.length > 0) {
+                            // Find the matching choice reference name for this answer
+                            var choices = data.choices || [];
+                            for (var ch = 0; ch < choices.length; ch++) {
+                                var choiceText = choices[ch].choiceText || choices[ch].label || '';
+                                if (choiceText === responses[qId]) {
+                                    field.value = choices[ch].name;
+                                    field.fieldValue = choices[ch].name;
+                                    field.selectedChoiceValue = choices[ch].name;
+                                    break;
+                                }
+                            }
+                        }
+                        injected++;
+                        log('Injected: ' + qId.substring(0, 30) + '... = ' + responses[qId], 'log-dim');
+                    }
+                }
+            }
+
+            log('Injected ' + injected + ' response(s) into flow JSON', 'log-info');
+            return data;
         }
 
-        function onAccountsResult(data) {
-            var el = document.getElementById('queryResults');
-            el.textContent = JSON.stringify(data, null, 2);
+        function showSuccess(title, sub) {
+            document.getElementById('successText').textContent = title;
+            document.getElementById('successSub').textContent = sub;
+            document.getElementById('successOverlay').classList.add('visible');
+        }
+        function hideSuccess() {
+            document.getElementById('successOverlay').classList.remove('visible');
         }
 
-        function queryVisits() {
-            document.getElementById('queryResults').textContent = 'Querying visits...';
-            PresentationPlayer.fetchWithParams(
-                'SELECT Id, AccountId, Account.Name, Status, CreatedDate FROM Visit ORDER BY CreatedDate DESC LIMIT 5',
-                {'batchSize': 5},
-                'onVisitsResult'
-            );
-        }
+        // ---- Init ----
+        if (typeof PresentationPlayer !== 'undefined' && PresentationPlayer.registerEventListener) {
+            setStatus(true, 'Connected');
+            log('PresentationPlayer detected', 'log-info');
 
-        function onVisitsResult(data) {
-            var el = document.getElementById('queryResults');
-            el.textContent = JSON.stringify(data, null, 2);
-        }
+            PresentationPlayer.registerEventListener('surveyflowjsonloaded', function(data) {
+                log('=== EVENT: surveyflowjsonloaded ===', 'log-warn');
+                log('Data type: ' + typeof data, 'log-dim');
+                try {
+                    surveyFlowData = (typeof data === 'string') ? JSON.parse(data) : data;
+                    log('Keys: ' + Object.keys(surveyFlowData).join(', '), 'log-info');
+                    log('Label: ' + (surveyFlowData.label || 'N/A'), 'log-data');
+                    log('Screens: ' + (surveyFlowData.screens || []).length, 'log-data');
+                    log('Choices: ' + (surveyFlowData.choices || []).length, 'log-data');
+                    document.getElementById('surveyId').textContent = surveyFlowData.fullName || '';
 
-        // Make callbacks global
-        window.onAccountsResult = onAccountsResult;
-        window.onVisitsResult = onVisitsResult;
+                    // Log full JSON
+                    log('Full JSON:', 'log-dim');
+                    log(JSON.stringify(surveyFlowData, null, 2), 'log-data');
 
-        // Init
-        elog('Script loaded');
-        if (typeof PresentationPlayer !== 'undefined') {
-            elog('PresentationPlayer available');
-            document.getElementById('configStatus').textContent = 'PresentationPlayer detected. Click "Show configData" to inspect.';
+                    renderSurvey(surveyFlowData);
+                } catch(e) {
+                    log('Parse error: ' + e.message, 'log-error');
+                    log('Raw: ' + String(data).substring(0, 500), 'log-error');
+                }
+            });
+
+            PresentationPlayer.registerEventListener('surveyflowjsonpassedtovisit', function(data) {
+                log('=== EVENT: surveyflowjsonpassedtovisit ===', 'log-warn');
+                log(JSON.stringify(data, null, 2), 'log-data');
+            });
+
+            log('Listeners registered', 'log-info');
+            log('Auto-loading survey...', 'log-dim');
+            loadSurvey();
         } else {
-            elog('PresentationPlayer NOT available (outside LSC app)');
-            document.getElementById('configStatus').textContent = 'Not in LSC app. PresentationPlayer not available.';
+            setStatus(false, 'Not in LSC app');
+            log('PresentationPlayer not available', 'log-error');
+            log('Running outside LSC mobile app', 'log-dim');
+            // Show demo UI with sample data
+            var demoData = {
+                label: 'Visit Survey',
+                fullName: 'visit_survey',
+                screens: [{
+                    fields: [
+                        { name: 'q_satisfaction', fieldText: 'How would you rate your overall satisfaction with the information provided during today\'s visit?', fieldType: 'Slider', scale: '10' },
+                        { name: 'q_confidence', fieldText: 'How confident do you feel in prescribing or recommending this product based on your current understanding?', fieldType: 'RadioButtons', choiceReferences: ['c_very', 'c_confident', 'c_somewhat', 'c_not'] },
+                        { name: 'q_additional', fieldText: 'What additional clinical data, resources, or support would be most helpful for you at this time?', fieldType: 'LargeTextArea' }
+                    ]
+                }],
+                choices: [
+                    { name: 'c_very', choiceText: 'Very Confident' },
+                    { name: 'c_confident', choiceText: 'Confident' },
+                    { name: 'c_somewhat', choiceText: 'Somewhat Confident' },
+                    { name: 'c_not', choiceText: 'Not Confident' }
+                ]
+            };
+            log('Loading demo data for preview...', 'log-warn');
+            surveyFlowData = demoData;
+            renderSurvey(demoData);
         }
-
-        // Auto-check configData after 2 seconds
-        setTimeout(function() {
-            elog('2s check: configData is ' + (configData ? 'SET (' + Object.keys(configData).join(',') + ')' : 'still undefined'));
-        }, 2000);
-
-        // Auto-check again after 5 seconds
-        setTimeout(function() {
-            elog('5s check: configData is ' + (configData ? 'SET' : 'still undefined'));
-            if (!configData) {
-                document.getElementById('configStatus').textContent = 'configData still undefined after 5s. Event never fired.';
-            }
-        }, 5000);
     </script>
 </body>
 </html>
