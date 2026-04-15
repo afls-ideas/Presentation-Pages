@@ -4,13 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HCP Visit Survey</title>
-    <!-- Capture configData BEFORE anything else loads -->
-    <script type="text/javascript">
-        var configData = null;
-        document.addEventListener('PresentationDOMContentLoaded', function(event) {
-            configData = event.data;
-        });
-    </script>
     <script src="js/jquery.min.js"></script>
     <style>
         @import url('fonts/montserrat.css');
@@ -139,6 +132,7 @@
     </style>
 </head>
 <body>
+    <script>var __earlyConfigData=null;document.addEventListener('PresentationDOMContentLoaded',function(e){__earlyConfigData=e.data;});</script>
     <div class="slide">
         <div class="header">
             <div class="header-left">
@@ -230,7 +224,7 @@
         var surveyFlowData = null;
         var responses = {};
         var consoleEl = document.getElementById('console');
-        // configData is captured in <head> script before page renders
+        var configData = null;
         var currentAccountId = null;
         var currentAccountName = null;
 
@@ -320,27 +314,28 @@
             updateAccountBanner(null, null);
         }
 
-        // Process configData (captured in <head> before page rendered)
-        function processConfigData() {
-            log('=== configData ===', 'log-warn');
-            if (!configData) {
-                log('configData is null — PresentationDOMContentLoaded may not have fired yet', 'log-error');
-                updateAccountBanner(null, null);
-                // Show reload button so user can retry after selecting HCP
-                var btn = document.getElementById('detectBtn');
-                if (btn) btn.style.display = 'inline-block';
-                return;
+        function logAndApplyConfig(cfg, source) {
+            configData = cfg;
+            log('=== configData (' + source + ') ===', 'log-warn');
+            log('Config keys: ' + Object.keys(cfg || {}).join(', '), 'log-dim');
+            if (cfg) {
+                if (cfg.customers) log('customers: ' + JSON.stringify(cfg.customers), 'log-data');
+                if (cfg.visits) log('visits: ' + JSON.stringify(cfg.visits), 'log-data');
+                if (cfg.user) log('user: ' + JSON.stringify(cfg.user), 'log-data');
+                log('currentMode: ' + (cfg.currentMode || 'N/A'), 'log-dim');
+                log('currentTerritoryName: ' + (cfg.currentTerritoryName || 'N/A'), 'log-dim');
             }
-            log('Config keys: ' + Object.keys(configData).join(', '), 'log-dim');
+            extractAccountFromConfig(cfg);
+        }
 
-            // Log relevant sections
-            if (configData.customers) log('customers: ' + JSON.stringify(configData.customers), 'log-data');
-            if (configData.visits) log('visits: ' + JSON.stringify(configData.visits), 'log-data');
-            if (configData.user) log('user: ' + JSON.stringify(configData.user), 'log-data');
-            log('currentMode: ' + (configData.currentMode || 'N/A'), 'log-dim');
-            log('currentTerritoryName: ' + (configData.currentTerritoryName || 'N/A'), 'log-dim');
+        // Listen for config data — may fire before or after this script runs
+        document.addEventListener('PresentationDOMContentLoaded', function(event) {
+            logAndApplyConfig(event.data, 'event listener');
+        });
 
-            extractAccountFromConfig(configData);
+        // Also check if event already fired and was captured by early <body> script
+        if (window.__earlyConfigData) {
+            logAndApplyConfig(window.__earlyConfigData, 'early capture');
         }
 
         // ---- Render survey from flow JSON ----
@@ -578,9 +573,6 @@
         if (typeof PresentationPlayer !== 'undefined' && PresentationPlayer.registerEventListener) {
             setStatus(true, 'Connected');
             log('PresentationPlayer detected', 'log-info');
-
-            // Process configData captured in <head>
-            processConfigData();
 
             PresentationPlayer.registerEventListener('surveyflowjsonloaded', function(data) {
                 log('=== EVENT: surveyflowjsonloaded ===', 'log-warn');
