@@ -243,6 +243,10 @@ Get and set survey flow JSON data.
 - `'save'` = draft (resumable), `'submit'` = final (creates records)
 - `surveyflowjsonpassedtovisit` fires when JSON is passed back to the visit
 
+### Visual
+
+![Survey in Intelligent Content](examples/assets/11_Survey_In_IC.gif)
+
 ---
 
 ## 12 — Swipe Regions
@@ -371,6 +375,3 @@ Create visits during a presentation session and link presentation metrics to the
 - **Current user & territory display** — Queries `User` and `UserAdditionalInfo.Preference` JSON for territory info.
 - **Do not use `upsert` for visits** — Blacklisted fields (`Status`, `providervisitid`) prevent proper visit creation.
 
-### Visual
-
-![Create Visit in Intelligent Content](examples/assets/16_Survey_In_IC.gif)
