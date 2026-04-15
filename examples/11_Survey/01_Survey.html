@@ -132,7 +132,26 @@
     </style>
 </head>
 <body>
-    <script>var __earlyConfigData=null;document.addEventListener('PresentationDOMContentLoaded',function(e){__earlyConfigData=e.data;});</script>
+    <!-- Mustache-injected customer data (hidden, read by JS) -->
+    <div id="mustache-data" style="display:none">
+        {{#customers}}
+        <div class="mustache-customer"
+             data-id="{{id}}"
+             data-name="{{name}}"
+             data-firstname="{{firstName}}"
+             data-lastname="{{lastName}}"
+             data-primary="{{isPrimary}}"
+             data-type="{{accountType}}">
+        </div>
+        {{/customers}}
+        {{#visits}}
+        <div class="mustache-visit"
+             data-id="{{id}}"
+             data-accountid="{{accountId}}"
+             data-parent="{{isParent}}">
+        </div>
+        {{/visits}}
+    </div>
     <div class="slide">
         <div class="header">
             <div class="header-left">
@@ -274,68 +293,60 @@
             return !!currentAccountId;
         }
 
-        function reloadSlide() {
-            window.location.reload();
-        }
-
-        // Extract account from configData using the documented JSON structure:
-        //   configData.customers[] — array of account records with id, name, firstName, lastName
-        //   configData.visits[] — array of visits with id, accountId
-        function extractAccountFromConfig(cfg) {
-            if (!cfg) return;
-
-            // Primary: customers array (selected attendees)
-            if (cfg.customers && cfg.customers.length > 0) {
-                var customer = cfg.customers[0]; // primary customer
-                currentAccountId = customer.id;
-                currentAccountName = customer.name || ((customer.firstName || '') + ' ' + (customer.lastName || '')).trim() || null;
-                log('Account from customers[]: ' + (currentAccountName || currentAccountId), 'log-info');
-                log('isPrimary: ' + customer.isPrimary + ', accountType: ' + customer.accountType, 'log-dim');
-                updateAccountBanner(currentAccountName, currentAccountId);
-                var btn = document.getElementById('detectBtn');
-                if (btn) btn.style.display = 'none';
+        // Read account context from Mustache-injected hidden elements
+        function readMustacheData() {
+            log('=== Reading Mustache-injected data ===', 'log-warn');
+            var container = document.getElementById('mustache-data');
+            if (!container) {
+                log('No mustache-data container found', 'log-error');
                 return;
             }
 
-            // Fallback: visits array
-            if (cfg.visits && cfg.visits.length > 0) {
-                var visit = cfg.visits[0];
-                if (visit.accountId) {
-                    currentAccountId = visit.accountId;
-                    log('Account from visits[]: ' + currentAccountId, 'log-info');
-                    updateAccountBanner(null, currentAccountId);
-                    var btn = document.getElementById('detectBtn');
-                    if (btn) btn.style.display = 'none';
-                    return;
+            // Read customers
+            var customerEls = container.querySelectorAll('.mustache-customer');
+            log('Customers found: ' + customerEls.length, 'log-info');
+            for (var i = 0; i < customerEls.length; i++) {
+                var el = customerEls[i];
+                var id = el.getAttribute('data-id');
+                var name = el.getAttribute('data-name');
+                var firstName = el.getAttribute('data-firstname');
+                var lastName = el.getAttribute('data-lastname');
+                var isPrimary = el.getAttribute('data-primary');
+                var accountType = el.getAttribute('data-type');
+                log('Customer ' + i + ': id=' + id + ', name=' + name + ', type=' + accountType + ', primary=' + isPrimary, 'log-data');
+
+                if (id && !currentAccountId) {
+                    currentAccountId = id;
+                    currentAccountName = name || ((firstName || '') + ' ' + (lastName || '')).trim() || null;
+                    log('HCP set: ' + (currentAccountName || currentAccountId), 'log-info');
+                    updateAccountBanner(currentAccountName, currentAccountId);
                 }
             }
 
-            log('No customers or visits with accountId in configData', 'log-warn');
-            updateAccountBanner(null, null);
-        }
+            // Read visits
+            var visitEls = container.querySelectorAll('.mustache-visit');
+            log('Visits found: ' + visitEls.length, 'log-info');
+            for (var v = 0; v < visitEls.length; v++) {
+                var vel = visitEls[v];
+                log('Visit ' + v + ': id=' + vel.getAttribute('data-id') + ', accountId=' + vel.getAttribute('data-accountid') + ', isParent=' + vel.getAttribute('data-parent'), 'log-data');
 
-        function logAndApplyConfig(cfg, source) {
-            configData = cfg;
-            log('=== configData (' + source + ') ===', 'log-warn');
-            log('Config keys: ' + Object.keys(cfg || {}).join(', '), 'log-dim');
-            if (cfg) {
-                if (cfg.customers) log('customers: ' + JSON.stringify(cfg.customers), 'log-data');
-                if (cfg.visits) log('visits: ' + JSON.stringify(cfg.visits), 'log-data');
-                if (cfg.user) log('user: ' + JSON.stringify(cfg.user), 'log-data');
-                log('currentMode: ' + (cfg.currentMode || 'N/A'), 'log-dim');
-                log('currentTerritoryName: ' + (cfg.currentTerritoryName || 'N/A'), 'log-dim');
+                // Fallback: if no customer, use visit accountId
+                if (!currentAccountId && vel.getAttribute('data-accountid')) {
+                    currentAccountId = vel.getAttribute('data-accountid');
+                    log('HCP set from visit: ' + currentAccountId, 'log-info');
+                    updateAccountBanner(null, currentAccountId);
+                }
             }
-            extractAccountFromConfig(cfg);
-        }
 
-        // Listen for config data — may fire before or after this script runs
-        document.addEventListener('PresentationDOMContentLoaded', function(event) {
-            logAndApplyConfig(event.data, 'event listener');
-        });
-
-        // Also check if event already fired and was captured by early <body> script
-        if (window.__earlyConfigData) {
-            logAndApplyConfig(window.__earlyConfigData, 'early capture');
+            if (!currentAccountId) {
+                log('No HCP found in Mustache data', 'log-warn');
+                // Check if Mustache wasn't processed (raw templates still present)
+                var raw = container.innerHTML;
+                if (raw.indexOf('{{') !== -1) {
+                    log('Mustache templates not processed — running outside LSC?', 'log-warn');
+                }
+                updateAccountBanner(null, null);
+            }
         }
 
         // ---- Render survey from flow JSON ----
@@ -573,6 +584,9 @@
         if (typeof PresentationPlayer !== 'undefined' && PresentationPlayer.registerEventListener) {
             setStatus(true, 'Connected');
             log('PresentationPlayer detected', 'log-info');
+
+            // Read HCP from Mustache-injected data
+            readMustacheData();
 
             PresentationPlayer.registerEventListener('surveyflowjsonloaded', function(data) {
                 log('=== EVENT: surveyflowjsonloaded ===', 'log-warn');
