@@ -219,10 +219,14 @@
     </div>
 
     <script type="text/javascript">
-        // Capture configData FIRST — must be before any other code (event fires early)
+        // Capture configData — event fires after script init but before user interaction
         var configData;
         document.addEventListener('PresentationDOMContentLoaded', function(event) {
             configData = event.data;
+            // Process account as soon as event fires
+            if (typeof processConfigData === 'function') {
+                processConfigData();
+            }
         });
 
         var surveyFlowData = null;
@@ -274,6 +278,10 @@
         }
 
         function hasAccountContext() {
+            // Lazy check: if we haven't processed configData yet, try now
+            if (!currentAccountId && configData) {
+                processConfigData();
+            }
             return !!currentAccountId;
         }
 
@@ -553,9 +561,6 @@
         if (typeof PresentationPlayer !== 'undefined' && PresentationPlayer.registerEventListener) {
             setStatus(true, 'Connected');
             log('PresentationPlayer detected', 'log-info');
-
-            // Process configData captured by early listener
-            processConfigData();
 
             PresentationPlayer.registerEventListener('surveyflowjsonloaded', function(data) {
                 log('=== EVENT: surveyflowjsonloaded ===', 'log-warn');
