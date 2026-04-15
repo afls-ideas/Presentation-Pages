@@ -367,22 +367,29 @@
         function querySurveyRecords(action) {
             log('=== Querying survey records after ' + action + ' ===', 'log-warn');
 
+            // Use TODAY filter to only see new records created by our submit
+            var today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            log('Filtering records created today: ' + today, 'log-dim');
+
             var queries = [
-                { label: 'SurveyResponse', soql: 'SELECT Id, SurveyId, SurveyVersionId, Status, CreatedDate FROM SurveyResponse ORDER BY CreatedDate DESC LIMIT 3' },
-                { label: 'SurveyQstnResponseOffline', soql: 'SELECT Id, QuestionId, ResponseValue, SurveyResponseId FROM SurveyQstnResponseOffline ORDER BY CreatedDate DESC LIMIT 5' },
-                { label: 'SurveyQuestionResponse', soql: 'SELECT Id, QuestionId, ResponseValue, SurveyResponseId FROM SurveyQuestionResponse ORDER BY CreatedDate DESC LIMIT 5' },
-                { label: 'SurveyInvitation', soql: 'SELECT Id, SurveyId, ParticipantId, ResponseStatus FROM SurveyInvitation ORDER BY CreatedDate DESC LIMIT 3' },
-                { label: 'SurveySubject', soql: 'SELECT Id, SurveyInvitationId, SubjectId, SubjectEntityType FROM SurveySubject ORDER BY CreatedDate DESC LIMIT 3' }
+                { key: 'SurveyResponseToday', label: 'SurveyResponse (today)', soql: "SELECT Id, SurveyId, SurveyVersionId, Status, CreatedDate FROM SurveyResponse WHERE CreatedDate >= " + today + "T00:00:00Z ORDER BY CreatedDate DESC LIMIT 5" },
+                { key: 'SurveyResponseAll', label: 'SurveyResponse (all recent)', soql: 'SELECT Id, SurveyId, SurveyVersionId, Status, CreatedDate FROM SurveyResponse ORDER BY CreatedDate DESC LIMIT 5' },
+                { key: 'SurveyQstnOffline', label: 'SurveyQstnResponseOffline', soql: 'SELECT Id, CreatedDate FROM SurveyQstnResponseOffline ORDER BY CreatedDate DESC LIMIT 5' },
+                { key: 'SurveyQstnResponse', label: 'SurveyQuestionResponse', soql: 'SELECT Id, CreatedDate FROM SurveyQuestionResponse ORDER BY CreatedDate DESC LIMIT 5' },
+                { key: 'SurveyInvitationToday', label: 'SurveyInvitation (today)', soql: "SELECT Id, SurveyId, ParticipantId, ResponseStatus, CreatedDate FROM SurveyInvitation WHERE CreatedDate >= " + today + "T00:00:00Z ORDER BY CreatedDate DESC LIMIT 5" },
+                { key: 'SurveySubjectToday', label: 'SurveySubject (today)', soql: "SELECT Id, SurveyInvitationId, SubjectId, SubjectEntityType, CreatedDate FROM SurveySubject WHERE CreatedDate >= " + today + "T00:00:00Z ORDER BY CreatedDate DESC LIMIT 5" }
             ];
 
             for (var i = 0; i < queries.length; i++) {
                 (function(q) {
                     log('Querying ' + q.label + '...', 'log-dim');
+                    // Register callback dynamically
+                    window['onSurveyQuery_' + q.key] = makeSurveyCallback(q.label);
                     try {
                         PresentationPlayer.fetchWithParams(
                             q.soql,
                             {'batchSize': 5},
-                            'onSurveyQuery_' + q.label
+                            'onSurveyQuery_' + q.key
                         );
                     } catch(e) {
                         log(q.label + ' query error: ' + e.message, 'log-error');
@@ -404,11 +411,9 @@
                 }
             };
         }
-        window.onSurveyQuery_SurveyResponse = makeSurveyCallback('SurveyResponse');
-        window.onSurveyQuery_SurveyQstnResponseOffline = makeSurveyCallback('SurveyQstnResponseOffline');
-        window.onSurveyQuery_SurveyQuestionResponse = makeSurveyCallback('SurveyQuestionResponse');
-        window.onSurveyQuery_SurveyInvitation = makeSurveyCallback('SurveyInvitation');
-        window.onSurveyQuery_SurveySubject = makeSurveyCallback('SurveySubject');
+        // Callbacks registered dynamically in querySurveyRecords()
+        window.onBaselineSurveyResponse = function(d) { log('BASELINE SurveyResponse count: ' + (d.totalSize || 0), 'log-info'); };
+        window.onBaselineInvitation = function(d) { log('BASELINE SurveyInvitation count: ' + (d.totalSize || 0), 'log-info'); };
 
         function buildPayload() {
             // Deep copy the flow data so we don't mutate the original
@@ -494,6 +499,14 @@
             });
 
             log('Listeners registered', 'log-info');
+
+            // Baseline: count records before any submit
+            log('=== BASELINE record counts ===', 'log-warn');
+            try {
+                PresentationPlayer.fetchWithParams('SELECT COUNT() FROM SurveyResponse', {'batchSize': 1}, 'onBaselineSurveyResponse');
+                PresentationPlayer.fetchWithParams('SELECT COUNT() FROM SurveyInvitation', {'batchSize': 1}, 'onBaselineInvitation');
+            } catch(e) { log('Baseline query error: ' + e.message, 'log-error'); }
+
             log('Auto-loading survey...', 'log-dim');
             loadSurvey();
         } else {
