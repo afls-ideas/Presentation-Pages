@@ -2,6 +2,8 @@
 
 Demonstrates `PresentationPlayer.getSurveyFlowJson()` and `PresentationPlayer.setSurveyFlowJson()` for loading, rendering, and submitting survey responses in an LSC presentation.
 
+![Survey in Intelligent Content](../assets/11_Survey_In_IC.gif)
+
 ## Demo Structure
 
 | File | Description |
