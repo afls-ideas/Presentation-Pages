@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HCP Visit Survey</title>
+    <!-- Capture configData BEFORE anything else loads -->
+    <script type="text/javascript">
+        var configData = null;
+        document.addEventListener('PresentationDOMContentLoaded', function(event) {
+            configData = event.data;
+        });
+    </script>
     <script src="js/jquery.min.js"></script>
     <style>
         @import url('fonts/montserrat.css');
@@ -223,7 +230,7 @@
         var surveyFlowData = null;
         var responses = {};
         var consoleEl = document.getElementById('console');
-        var configData = null;
+        // configData is captured in <head> script before page renders
         var currentAccountId = null;
         var currentAccountName = null;
 
@@ -313,23 +320,28 @@
             updateAccountBanner(null, null);
         }
 
-        // Listen for config data — documented JSON structure provides customers[], visits[], user, presentations[]
-        document.addEventListener('PresentationDOMContentLoaded', function(event) {
-            configData = event.data;
-            log('=== PresentationDOMContentLoaded ===', 'log-warn');
-            log('Config keys: ' + Object.keys(configData || {}).join(', '), 'log-dim');
+        // Process configData (captured in <head> before page rendered)
+        function processConfigData() {
+            log('=== configData ===', 'log-warn');
+            if (!configData) {
+                log('configData is null — PresentationDOMContentLoaded may not have fired yet', 'log-error');
+                updateAccountBanner(null, null);
+                // Show reload button so user can retry after selecting HCP
+                var btn = document.getElementById('detectBtn');
+                if (btn) btn.style.display = 'inline-block';
+                return;
+            }
+            log('Config keys: ' + Object.keys(configData).join(', '), 'log-dim');
 
             // Log relevant sections
-            if (configData) {
-                if (configData.customers) log('customers: ' + JSON.stringify(configData.customers), 'log-data');
-                if (configData.visits) log('visits: ' + JSON.stringify(configData.visits), 'log-data');
-                if (configData.user) log('user: ' + JSON.stringify(configData.user), 'log-data');
-                log('currentMode: ' + (configData.currentMode || 'N/A'), 'log-dim');
-                log('currentTerritoryName: ' + (configData.currentTerritoryName || 'N/A'), 'log-dim');
-            }
+            if (configData.customers) log('customers: ' + JSON.stringify(configData.customers), 'log-data');
+            if (configData.visits) log('visits: ' + JSON.stringify(configData.visits), 'log-data');
+            if (configData.user) log('user: ' + JSON.stringify(configData.user), 'log-data');
+            log('currentMode: ' + (configData.currentMode || 'N/A'), 'log-dim');
+            log('currentTerritoryName: ' + (configData.currentTerritoryName || 'N/A'), 'log-dim');
 
             extractAccountFromConfig(configData);
-        });
+        }
 
         // ---- Render survey from flow JSON ----
         function renderSurvey(flowData) {
@@ -566,6 +578,9 @@
         if (typeof PresentationPlayer !== 'undefined' && PresentationPlayer.registerEventListener) {
             setStatus(true, 'Connected');
             log('PresentationPlayer detected', 'log-info');
+
+            // Process configData captured in <head>
+            processConfigData();
 
             PresentationPlayer.registerEventListener('surveyflowjsonloaded', function(data) {
                 log('=== EVENT: surveyflowjsonloaded ===', 'log-warn');
