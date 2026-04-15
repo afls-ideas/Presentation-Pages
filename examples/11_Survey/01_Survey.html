@@ -459,44 +459,63 @@
             }
         }
 
-        function saveDraft() {
-            if (!hasAccountContext()) {
-                log('BLOCKED: No account context. Cannot save survey without an HCP selected.', 'log-error');
-                showNoAccountModal();
-                return;
+        function debugConfigState() {
+            log('--- DEBUG: configData state ---', 'log-warn');
+            log('configData type: ' + typeof configData, 'log-data');
+            log('configData is null: ' + (configData === null), 'log-data');
+            log('configData is undefined: ' + (configData === undefined), 'log-data');
+            if (configData) {
+                log('configData keys: ' + Object.keys(configData).join(', '), 'log-data');
+                log('configData.customers: ' + JSON.stringify(configData.customers || 'undefined'), 'log-data');
+                log('configData.visits: ' + JSON.stringify(configData.visits || 'undefined'), 'log-data');
+                log('configData.user: ' + JSON.stringify(configData.user || 'undefined'), 'log-data');
+                log('configData.parameters: ' + JSON.stringify(configData.parameters || 'undefined'), 'log-data');
+                log('Full configData: ' + JSON.stringify(configData).substring(0, 1000), 'log-data');
             }
-            log('=== setSurveyFlowJson (save) ===', 'log-warn');
-            log('Account: ' + (currentAccountName || currentAccountId), 'log-dim');
+            log('currentAccountId: ' + currentAccountId, 'log-data');
+            log('currentAccountName: ' + currentAccountName, 'log-data');
+            log('--- END DEBUG ---', 'log-warn');
+        }
+
+        function doSaveOrSubmit(state) {
+            log('=== setSurveyFlowJson (' + state + ') ===', 'log-warn');
+
+            // Debug: dump configData state
+            debugConfigState();
+
+            // Warn but don't block if no account
+            if (!hasAccountContext()) {
+                log('WARNING: No HCP context detected. Submitting anyway to test.', 'log-error');
+            } else {
+                log('Account: ' + (currentAccountName || currentAccountId), 'log-info');
+            }
+
+            // Collect responses
+            log('Responses collected: ' + JSON.stringify(responses), 'log-data');
+
             var modifiedFlow = buildPayload();
-            log('Modified flow JSON (first 500 chars):', 'log-dim');
-            log(JSON.stringify(modifiedFlow).substring(0, 500), 'log-data');
+            log('Modified flow (first 800 chars):', 'log-dim');
+            log(JSON.stringify(modifiedFlow).substring(0, 800), 'log-data');
+
             try {
-                PresentationPlayer.setSurveyFlowJson(modifiedFlow, 'save');
-                log('Draft saved successfully', 'log-info');
-                showSuccess('Draft Saved!', 'Responses saved for ' + (currentAccountName || 'this HCP') + '. You can resume later.');
+                PresentationPlayer.setSurveyFlowJson(modifiedFlow, state);
+                log('setSurveyFlowJson called with state=' + state, 'log-info');
+                if (state === 'save') {
+                    showSuccess('Draft Saved!', 'Responses saved. You can resume later.');
+                } else {
+                    showSuccess('Survey Submitted!', 'Thank you for your feedback.');
+                }
             } catch(e) {
-                log('ERROR: ' + e.message, 'log-error');
+                log('ERROR calling setSurveyFlowJson: ' + e.message, 'log-error');
             }
         }
 
+        function saveDraft() {
+            doSaveOrSubmit('save');
+        }
+
         function submitFinal() {
-            if (!hasAccountContext()) {
-                log('BLOCKED: No account context. Cannot submit survey without an HCP selected.', 'log-error');
-                showNoAccountModal();
-                return;
-            }
-            log('=== setSurveyFlowJson (submit) ===', 'log-warn');
-            log('Account: ' + (currentAccountName || currentAccountId), 'log-dim');
-            var modifiedFlow = buildPayload();
-            log('Modified flow JSON (first 500 chars):', 'log-dim');
-            log(JSON.stringify(modifiedFlow).substring(0, 500), 'log-data');
-            try {
-                PresentationPlayer.setSurveyFlowJson(modifiedFlow, 'submit');
-                log('Survey submitted (final)', 'log-info');
-                showSuccess('Survey Submitted!', 'Thank you for your feedback, ' + (currentAccountName || '') + '.');
-            } catch(e) {
-                log('ERROR: ' + e.message, 'log-error');
-            }
+            doSaveOrSubmit('submit');
         }
 
         function buildPayload() {
