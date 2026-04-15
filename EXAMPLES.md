@@ -1,6 +1,6 @@
 # Examples Guide
 
-Detailed documentation for each of the 14 LSC Intelligent Content examples in this repository. Each folder in `examples/` contains exactly one HTML presentation page with its own README and thumbnail.
+Detailed documentation for each of the 16 LSC Intelligent Content examples in this repository. Each folder in `examples/` contains exactly one HTML presentation page with its own README and thumbnail.
 
 Each example folder is **self-contained** with all assets included — just zip and upload.
 
@@ -320,3 +320,57 @@ Include supplementary files (PDFs, videos, HTML pages) alongside your presentati
 - `required__document.pdf` — mandatory attachment (always sent)
 - `isadditionalcontent_supplement.pdf` — optional attachment
 - PDFs under 3 MB are auto-attached to the presentation page record
+
+---
+
+## 15 — Upsert Account
+
+**Directory:** [`examples/15_Upsert_Account/`](examples/15_Upsert_Account/)
+**ZIP:** `output/15_Upsert_Account.zip`
+**Platform:** Mobile only
+
+Create and update Account and HealthcareProvider records from within presentations using `upsert()`.
+
+### Functions Covered
+
+| Function | Description |
+|----------|-------------|
+| `PresentationPlayer.upsert(objects, callback)` | Create or update Salesforce records (max 15 per call) |
+
+### Key Details
+
+- **Account Type toggle** — Switch between Account and Person Account
+- **Operation toggle** — Insert (new) or Update (existing)
+- **Chained upsert** — On Account insert, automatically creates a linked HealthcareProvider record using the returned `data.ids[0]`
+- **Create vs Update** — Omit `id` to create; include `id` to update an existing record
+- **Person Account limitation** — Cannot be created via upsert. Name fields (`FirstName`, `LastName`, `Salutation`, etc.) are blacklisted for both insert and update
+- **Local-first** — Records are saved to the local database first and sync to the server on the next sync cycle
+
+---
+
+## 16 — Create Visit
+
+**Directory:** [`examples/16_Create_Visit/`](examples/16_Create_Visit/)
+**ZIP:** `output/16_Create_Visit.zip`
+**Platform:** Mobile only
+
+Create visits during a presentation session and link presentation metrics to the visit.
+
+### Functions Covered
+
+| Function | Description |
+|----------|-------------|
+| `PresentationPlayer.createVisit(callback)` | Create a visit for selected attendees |
+| `PresentationPlayer.upsert(objects, callback)` | Chain a PresentationClickStrmEntry linked to the visit |
+
+### Key Details
+
+- **One visit per session** — Invoke only once per presentation session. Subsequent calls return the existing visit ID with an error state.
+- **Attendees required** — Select attendee(s) in the player menu before opening the presentation. Without attendees, the call returns an error.
+- **Auto-created records** — On success, creates ProviderVisit, ProviderVisitProdDetailing, ProviderVisitDetailingProductMessage, PresentationForum, and PresentationClickStreamEntry records.
+- **Current user & territory display** — Queries `User` and `UserAdditionalInfo.Preference` JSON for territory info.
+- **Do not use `upsert` for visits** — Blacklisted fields (`Status`, `providervisitid`) prevent proper visit creation.
+
+### Visual
+
+![Create Visit in Intelligent Content](examples/assets/16_Survey_In_IC.gif)
