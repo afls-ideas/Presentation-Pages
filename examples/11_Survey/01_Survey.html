@@ -132,8 +132,6 @@
     </style>
 </head>
 <body>
-    <span id="mst-customer-id" style="display:none">{{#customers}}{{id}}{{/customers}}</span>
-    <span id="mst-customer-name" style="display:none">{{#customers}}{{name}}{{/customers}}</span>
     <div class="slide">
         <div class="header">
             <div class="header-left">
@@ -274,32 +272,75 @@
             return !!currentAccountId;
         }
 
-        // Read HCP from Mustache-injected hidden spans
-        function readMustacheAccount() {
-            var idEl = document.getElementById('mst-customer-id');
-            var nameEl = document.getElementById('mst-customer-name');
-            var rawId = idEl ? idEl.textContent.trim() : '';
-            var rawName = nameEl ? nameEl.textContent.trim() : '';
-
-            log('=== Mustache customer data ===', 'log-warn');
-            log('Raw ID text: "' + rawId + '"', 'log-data');
-            log('Raw Name text: "' + rawName + '"', 'log-data');
-
-            if (rawId && rawId.indexOf('{{') === -1) {
-                // Mustache was processed and gave us data
-                // If multiple customers, take the first 18-char Salesforce ID
-                currentAccountId = rawId.substring(0, 18);
-                currentAccountName = rawName || null;
-                log('HCP detected: ' + (currentAccountName || '') + ' (' + currentAccountId + ')', 'log-info');
+        function onAccountLoaded(data) {
+            if ((data.state === 'success' || data.records) && data.records && data.records.length > 0) {
+                currentAccountName = data.records[0].Name || 'Unknown';
+                log('Account: ' + currentAccountName + ' (' + currentAccountId + ')', 'log-info');
                 updateAccountBanner(currentAccountName, currentAccountId);
-            } else if (rawId.indexOf('{{') !== -1) {
-                log('Mustache not processed — templates still raw', 'log-warn');
-                updateAccountBanner(null, null);
             } else {
-                log('No customer in Mustache data (no HCP selected?)', 'log-warn');
-                updateAccountBanner(null, null);
+                log('Account query returned no results for ' + currentAccountId, 'log-warn');
+                updateAccountBanner(null, currentAccountId);
             }
         }
+
+        // Search for accountId in any nested object
+        function findAccountId(obj, depth) {
+            if (!obj || typeof obj !== 'object' || depth > 4) return null;
+            // Direct property names to check
+            var keys = ['accountId', 'AccountId', 'account_id', 'accountid'];
+            for (var i = 0; i < keys.length; i++) {
+                if (obj[keys[i]]) return obj[keys[i]];
+            }
+            // Recurse into child objects
+            var objKeys = Object.keys(obj);
+            for (var k = 0; k < objKeys.length; k++) {
+                var val = obj[objKeys[k]];
+                if (val && typeof val === 'object') {
+                    var found = findAccountId(val, (depth || 0) + 1);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        function applyAccountId(accountId) {
+            if (!accountId || currentAccountId) return;
+            currentAccountId = accountId;
+            log('Account ID detected: ' + currentAccountId, 'log-info');
+            updateAccountBanner(null, currentAccountId);
+            try {
+                PresentationPlayer.fetchWithParams(
+                    "SELECT Id, Name FROM Account WHERE Id = '" + currentAccountId + "' LIMIT 1",
+                    {'batchSize': 1}, 'onAccountLoaded'
+                );
+            } catch(e) {
+                log('Could not query account name: ' + e.message, 'log-warn');
+            }
+        }
+
+        // Listen for config data (provides accountId, visitId, userId)
+        document.addEventListener('PresentationDOMContentLoaded', function(event) {
+            // Try both event.data and event.detail (varies by player version)
+            configData = event.data || event.detail || {};
+            log('=== PresentationDOMContentLoaded ===', 'log-warn');
+            log('event.data type: ' + typeof event.data + ', event.detail type: ' + typeof event.detail, 'log-dim');
+            log('Config dump: ' + JSON.stringify(configData, null, 2), 'log-data');
+
+            // Try the standard path first
+            if (configData && configData.parameters && configData.parameters.accountId) {
+                applyAccountId(configData.parameters.accountId);
+            } else {
+                // Deep search for accountId anywhere in the config
+                var found = findAccountId(configData, 0);
+                if (found) {
+                    log('Found accountId via deep search: ' + found, 'log-info');
+                    applyAccountId(found);
+                } else {
+                    log('No accountId found in config. Full keys: ' + JSON.stringify(configData), 'log-warn');
+                    updateAccountBanner(null, null);
+                }
+            }
+        });
 
         // ---- Render survey from flow JSON ----
         function renderSurvey(flowData) {
@@ -532,13 +573,13 @@
             document.getElementById('noAccountModal').classList.remove('visible');
         }
 
+        // Make callback global for fetchWithParams
+        window.onAccountLoaded = onAccountLoaded;
+
         // ---- Init ----
         if (typeof PresentationPlayer !== 'undefined' && PresentationPlayer.registerEventListener) {
             setStatus(true, 'Connected');
             log('PresentationPlayer detected', 'log-info');
-
-            // Read HCP from Mustache-injected hidden spans
-            readMustacheAccount();
 
             PresentationPlayer.registerEventListener('surveyflowjsonloaded', function(data) {
                 log('=== EVENT: surveyflowjsonloaded ===', 'log-warn');
