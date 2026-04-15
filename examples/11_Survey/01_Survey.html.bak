@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HCP Visit Survey</title>
+    <script src="js/jquery.min.js"></script>
+    <style>
+        @import url('fonts/montserrat.css');
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { width: 100%; height: 100vh; overflow: hidden; background-color: #f5f5f5; display: flex; justify-content: center; align-items: center; }
+        .slide { width: 100%; height: 100%; max-width: 2388px; max-height: 1668px; position: relative; background: linear-gradient(135deg, #f6f2ff 0%, #ede8f7 100%); overflow: hidden; }
+
+        /* Header */
+        .header { padding: 30px 40px 0; display: flex; justify-content: space-between; align-items: center; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #5B2D8E, #8B5FC7); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; font-weight: 700; }
+        .page-title { font-size: 22px; font-weight: 700; color: #5B2D8E; }
+        .page-subtitle { font-size: 12px; color: #888; font-weight: 400; }
+        .header-actions { display: flex; gap: 8px; }
+
+        /* Main layout */
+        .main { display: flex; height: calc(100% - 80px); padding: 20px 40px 15px; gap: 25px; }
+
+        /* Left: Survey form */
+        .survey-panel { flex: 1; display: flex; flex-direction: column; }
+        .survey-card { background: white; border-radius: 16px; padding: 30px; flex: 1; overflow-y: auto; box-shadow: 0 2px 20px rgba(91,45,142,0.08); }
+        .survey-welcome { text-align: center; padding: 20px 0 25px; border-bottom: 1px solid #ede8f7; margin-bottom: 25px; }
+        .survey-welcome h2 { font-size: 18px; color: #5B2D8E; margin-bottom: 6px; }
+        .survey-welcome p { font-size: 12px; color: #888; }
+
+        /* Questions */
+        .question { margin-bottom: 28px; animation: fadeIn 0.4s ease; }
+        .question-number { display: inline-block; width: 28px; height: 28px; background: linear-gradient(135deg, #5B2D8E, #8B5FC7); color: white; border-radius: 50%; text-align: center; line-height: 28px; font-size: 13px; font-weight: 600; margin-right: 10px; }
+        .question-label { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 12px; display: flex; align-items: flex-start; }
+        .question-label span { padding-top: 3px; }
+        .question-type { font-size: 10px; color: #8B5FC7; background: #f3eefa; padding: 2px 8px; border-radius: 10px; margin-left: 8px; white-space: nowrap; align-self: center; }
+
+        /* Slider/Rating */
+        .rating-container { display: flex; align-items: center; gap: 15px; padding: 5px 0; }
+        .rating-slider { flex: 1; -webkit-appearance: none; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #e8ddf5, #8B5FC7); outline: none; }
+        .rating-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #5B2D8E, #8B5FC7); cursor: pointer; box-shadow: 0 2px 8px rgba(91,45,142,0.35); }
+        .rating-value { font-size: 24px; font-weight: 700; color: #5B2D8E; min-width: 35px; text-align: center; }
+        .rating-labels { display: flex; justify-content: space-between; font-size: 10px; color: #999; margin-top: 4px; }
+
+        /* Picklist / Radio */
+        .choice-list { display: flex; flex-direction: column; gap: 8px; }
+        .choice-item { display: flex; align-items: center; padding: 12px 16px; background: #f9f5ff; border: 2px solid transparent; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; }
+        .choice-item:hover { background: #f0e8fa; border-color: rgba(139,95,199,0.25); }
+        .choice-item.selected { background: linear-gradient(135deg, rgba(91,45,142,0.08), rgba(139,95,199,0.14)); border-color: #8B5FC7; }
+        .choice-radio { width: 20px; height: 20px; border: 2px solid #ccc; border-radius: 50%; margin-right: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s ease; }
+        .choice-item.selected .choice-radio { border-color: #5B2D8E; }
+        .choice-item.selected .choice-radio::after { content: ''; width: 10px; height: 10px; background: #5B2D8E; border-radius: 50%; }
+        .choice-text { font-size: 13px; color: #333; }
+
+        /* Text input */
+        .text-input { width: 100%; padding: 14px 16px; border: 2px solid #e8ddf5; border-radius: 10px; font-size: 13px; font-family: 'Montserrat', sans-serif; resize: vertical; min-height: 80px; transition: border-color 0.2s ease; }
+        .text-input:focus { outline: none; border-color: #8B5FC7; }
+
+        /* Action buttons */
+        .survey-actions { display: flex; gap: 10px; padding-top: 15px; justify-content: center; }
+        .btn { padding: 12px 28px; border-radius: 30px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+        .btn-save { background: linear-gradient(135deg, #A678D6, #8B5FC7); color: white; }
+        .btn-submit { background: linear-gradient(135deg, #5B2D8E, #7B48B8); color: white; }
+        .btn-small { padding: 6px 14px; font-size: 11px; border-radius: 20px; }
+        .btn-outline { background: white; color: #5B2D8E; border: 2px solid #5B2D8E; }
+
+        /* Right: Console */
+        .console-panel { width: 380px; display: flex; flex-direction: column; }
+        .console-card { background: #1a1028; border-radius: 16px; flex: 1; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 2px 20px rgba(91,45,142,0.25); }
+        .console-header { padding: 12px 16px; background: #150e22; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d1f45; }
+        .console-title { color: #888; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+        .console-dots { display: flex; gap: 6px; }
+        .console-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .console-dot.red { background: #ff5f57; }
+        .console-dot.yellow { background: #ffbd2e; }
+        .console-dot.green { background: #8B5FC7; }
+        .console-body { padding: 12px 16px; flex: 1; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.6; }
+        .console-body .log-info { color: #b388ff; }
+        .console-body .log-warn { color: #ffaa00; }
+        .console-body .log-error { color: #ff4444; }
+        .console-body .log-data { color: #ce93d8; }
+        .console-body .log-dim { color: #555; }
+
+        /* Status indicator */
+        .status-bar { padding: 8px 16px; background: #150e22; border-top: 1px solid #2d1f45; display: flex; justify-content: space-between; align-items: center; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .status-dot.connected { background: #28c840; }
+        .status-dot.disconnected { background: #ff5f57; }
+        .status-text { color: #666; font-size: 10px; }
+
+        /* Loading state */
+        .loading { text-align: center; padding: 60px 20px; }
+        .loading-spinner { width: 40px; height: 40px; border: 3px solid #e8ddf5; border-top: 3px solid #5B2D8E; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 15px; }
+        .loading p { color: #888; font-size: 13px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Success overlay */
+        .success-overlay { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.95); z-index: 100; justify-content: center; align-items: center; flex-direction: column; }
+        .success-overlay.visible { display: flex; }
+        .success-icon { font-size: 60px; margin-bottom: 15px; }
+        .success-text { font-size: 20px; font-weight: 600; color: #5B2D8E; }
+        .success-sub { font-size: 13px; color: #888; margin-top: 8px; }
+
+        /* Account banner */
+        .account-banner { margin-bottom: 15px; padding: 12px 16px; border-radius: 10px; display: flex; align-items: center; gap: 12px; font-size: 12px; }
+        .account-banner.has-account { background: linear-gradient(135deg, rgba(91,45,142,0.06), rgba(139,95,199,0.1)); border: 1px solid rgba(139,95,199,0.2); }
+        .account-banner.no-account { background: linear-gradient(135deg, #fff5f5, #fff0f0); border: 1px solid rgba(220,80,80,0.25); }
+        .account-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+        .has-account .account-icon { background: linear-gradient(135deg, #5B2D8E, #8B5FC7); color: white; }
+        .no-account .account-icon { background: #eee; color: #cc5555; }
+        .account-info { flex: 1; }
+        .account-name { font-weight: 600; color: #333; font-size: 13px; }
+        .account-id { color: #999; font-size: 10px; font-family: 'Courier New', monospace; }
+        .account-warning { color: #cc5555; font-weight: 600; }
+
+        /* Modal */
+        .modal-overlay { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; justify-content: center; align-items: center; }
+        .modal-overlay.visible { display: flex; }
+        .modal { background: white; border-radius: 16px; padding: 35px 30px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 10px 40px rgba(91,45,142,0.3); animation: modalIn 0.25s ease; }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.9) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .modal-icon { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #fff0f0, #ffe0e0); display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; font-size: 26px; color: #cc5555; }
+        .modal-title { font-size: 18px; font-weight: 700; color: #333; margin-bottom: 10px; }
+        .modal-body { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 22px; }
+        .modal-btn { padding: 12px 36px; border-radius: 30px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; background: linear-gradient(135deg, #5B2D8E, #7B48B8); color: white; transition: all 0.2s ease; }
+        .modal-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(91,45,142,0.3); }
+
+        .footer { position: absolute; bottom: 0; left: 0; width: 100%; padding: 8px 40px; z-index: 10; }
+        .footer-left { color: #aaa; font-size: 10px; }
+    </style>
+</head>
+<body>
+    <div class="slide">
+        <div class="header">
+            <div class="header-left">
+                <div class="logo-icon">Ix</div>
+                <div>
+                    <div class="page-title">Immunexis HCP Survey</div>
+                    <div class="page-subtitle">getSurveyFlowJson &amp; setSurveyFlowJson Demo</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-small btn-outline" onclick="loadSurvey()">Reload Survey</button>
+            </div>
+        </div>
+
+        <div class="main">
+            <!-- Survey Form -->
+            <div class="survey-panel">
+                <div class="account-banner no-account" id="accountBanner">
+                    <div class="account-icon" id="accountIcon">?</div>
+                    <div class="account-info">
+                        <div class="account-warning" id="accountLabel">No HCP selected</div>
+                        <div class="account-id" id="accountDetail">Open this presentation from a visit to link survey responses</div>
+                    </div>
+                </div>
+                <div class="survey-card" id="surveyCard">
+                    <div class="loading" id="loadingState">
+                        <div class="loading-spinner"></div>
+                        <p>Loading survey flow...</p>
+                        <p style="font-size:11px;color:#aaa;margin-top:5px">Calling getSurveyFlowJson({developerName: "visit_survey"})</p>
+                    </div>
+                </div>
+                <div class="survey-actions" id="surveyActions" style="display:none">
+                    <button class="btn btn-save" onclick="saveDraft()">Save Draft</button>
+                    <button class="btn btn-submit" onclick="submitFinal()">Submit Survey</button>
+                </div>
+            </div>
+
+            <!-- Console -->
+            <div class="console-panel">
+                <div class="console-card">
+                    <div class="console-header">
+                        <span class="console-title">Console</span>
+                        <div class="console-dots">
+                            <div class="console-dot red"></div>
+                            <div class="console-dot yellow"></div>
+                            <div class="console-dot green"></div>
+                        </div>
+                    </div>
+                    <div class="console-body" id="console"></div>
+                    <div class="status-bar">
+                        <span>
+                            <span class="status-dot" id="statusDot"></span>
+                            <span class="status-text" id="statusText">Initializing...</span>
+                        </span>
+                        <span class="status-text" id="surveyId"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success overlay -->
+        <div class="success-overlay" id="successOverlay">
+            <div class="success-icon">&#10003;</div>
+            <div class="success-text" id="successText">Survey Submitted!</div>
+            <div class="success-sub" id="successSub">Responses saved successfully</div>
+            <button class="btn btn-outline" style="margin-top:20px" onclick="hideSuccess()">Back to Survey</button>
+        </div>
+
+        <!-- No Account Modal -->
+        <div class="modal-overlay" id="noAccountModal">
+            <div class="modal">
+                <div class="modal-icon">!</div>
+                <div class="modal-title">No HCP Selected</div>
+                <div class="modal-body">
+                    Survey responses cannot be saved without an HCP context.<br><br>
+                    Please open this presentation from a <strong>visit</strong> or <strong>account</strong> so responses are linked to the correct healthcare provider.
+                </div>
+                <button class="modal-btn" onclick="closeModal()">Got It</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-left">&copy; 2025 Makana Pharma Inc.</div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // Capture configData — event fires after script init but before user interaction
+        var configData;
+        document.addEventListener('PresentationDOMContentLoaded', function(event) {
+            configData = event.data;
+            // Process account as soon as event fires
+            if (typeof processConfigData === 'function') {
+                processConfigData();
+            }
+        });
+
+        var surveyFlowData = null;
+        var responses = {};
+        var consoleEl = document.getElementById('console');
+        var currentAccountId = null;
+        var currentAccountName = null;
+
+        function log(msg, cls) {
+            var ts = new Date().toLocaleTimeString();
+            var line = document.createElement('div');
+            line.className = cls || 'log-info';
+            line.textContent = '[' + ts + '] ' + msg;
+            consoleEl.appendChild(line);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        function setStatus(connected, text) {
+            var dot = document.getElementById('statusDot');
+            dot.className = 'status-dot ' + (connected ? 'connected' : 'disconnected');
+            document.getElementById('statusText').textContent = text;
+        }
+
+        // ---- Account context ----
+        function updateAccountBanner(name, id) {
+            var banner = document.getElementById('accountBanner');
+            var icon = document.getElementById('accountIcon');
+            var label = document.getElementById('accountLabel');
+            var detail = document.getElementById('accountDetail');
+            if (name && id) {
+                banner.className = 'account-banner has-account';
+                icon.textContent = name.charAt(0).toUpperCase();
+                label.className = 'account-name';
+                label.textContent = name;
+                detail.textContent = id;
+            } else if (id) {
+                banner.className = 'account-banner has-account';
+                icon.textContent = 'A';
+                label.className = 'account-name';
+                label.textContent = 'Account';
+                detail.textContent = id;
+            } else {
+                banner.className = 'account-banner no-account';
+                icon.textContent = '!';
+                label.className = 'account-warning';
+                label.textContent = 'No HCP selected';
+                detail.textContent = 'Open this presentation from a visit to link survey responses';
+            }
+        }
+
+        function hasAccountContext() {
+            // Lazy check: if we haven't processed configData yet, try now
+            if (!currentAccountId && configData) {
+                processConfigData();
+            }
+            return !!currentAccountId;
+        }
+
+
+        // Process configData (captured at top of script via early listener)
+        function processConfigData() {
+            log('=== configData ===', 'log-warn');
+            if (!configData) {
+                log('configData is null — event may not have fired', 'log-error');
+                updateAccountBanner(null, null);
+                return;
+            }
+            log('Config keys: ' + Object.keys(configData).join(', '), 'log-dim');
+
+            // Log relevant sections from documented JSON structure
+            if (configData.customers) log('customers: ' + JSON.stringify(configData.customers), 'log-data');
+            if (configData.visits) log('visits: ' + JSON.stringify(configData.visits), 'log-data');
+            if (configData.user) log('user: ' + JSON.stringify(configData.user), 'log-data');
+
+            // Primary: customers[] array (selected attendees)
+            if (configData.customers && configData.customers.length > 0) {
+                var customer = configData.customers[0];
+                currentAccountId = customer.id;
+                currentAccountName = customer.name || ((customer.firstName || '') + ' ' + (customer.lastName || '')).trim() || null;
+                log('HCP from customers[]: ' + (currentAccountName || currentAccountId), 'log-info');
+                updateAccountBanner(currentAccountName, currentAccountId);
+                return;
+            }
+
+            // Fallback: visits[] array
+            if (configData.visits && configData.visits.length > 0) {
+                var visit = configData.visits[0];
+                if (visit.accountId) {
+                    currentAccountId = visit.accountId;
+                    log('HCP from visits[]: ' + currentAccountId, 'log-info');
+                    updateAccountBanner(null, currentAccountId);
+                    return;
+                }
+            }
+
+            log('No customers or visits in configData', 'log-warn');
+            updateAccountBanner(null, null);
+        }
+
+        // ---- Render survey from flow JSON ----
+        function renderSurvey(flowData) {
+            var card = document.getElementById('surveyCard');
+            var html = '';
+
+            // Welcome
+            html += '<div class="survey-welcome">';
+            html += '<h2>' + (flowData.label || 'Survey') + '</h2>';
+            html += '<p>Please take a moment to share your feedback</p>';
+            html += '</div>';
+
+            // Parse screens to extract questions
+            var screens = flowData.screens || [];
+            var choices = flowData.choices || [];
+            var qNum = 0;
+
+            for (var s = 0; s < screens.length; s++) {
+                var screen = screens[s];
+                var fields = screen.fields || [];
+                for (var f = 0; f < fields.length; f++) {
+                    var field = fields[f];
+                    // Skip non-input fields (display text, etc)
+                    if (field.fieldType === 'DisplayText') continue;
+
+                    qNum++;
+                    var qId = field.name || ('q' + qNum);
+                    var label = field.fieldText || field.name || 'Question ' + qNum;
+                    var fieldType = field.fieldType || '';
+
+                    html += '<div class="question">';
+                    html += '<div class="question-label">';
+                    html += '<div class="question-number">' + qNum + '</div>';
+                    html += '<span>' + label + '</span>';
+                    html += '<span class="question-type">' + fieldType + '</span>';
+                    html += '</div>';
+
+                    if (fieldType === 'Slider' || field.dataType === 'Number' || field.scale) {
+                        // Rating slider
+                        var min = 0, max = 10, step = 1;
+                        if (field.scale) { max = parseInt(field.scale) || 10; }
+                        html += '<div class="rating-container">';
+                        html += '<input type="range" class="rating-slider" min="' + min + '" max="' + max + '" step="' + step + '" value="5" ';
+                        html += 'data-qid="' + qId + '" oninput="updateRating(this)">';
+                        html += '<div class="rating-value" id="rv_' + qId + '">5</div>';
+                        html += '</div>';
+                        html += '<div class="rating-labels"><span>Low</span><span>High</span></div>';
+                        responses[qId] = '5';
+
+                    } else if (field.choiceReferences && field.choiceReferences.length > 0) {
+                        // Picklist with choices
+                        html += '<div class="choice-list">';
+                        for (var c = 0; c < field.choiceReferences.length; c++) {
+                            var choiceRef = field.choiceReferences[c];
+                            // Find the choice label from the choices array
+                            var choiceLabel = choiceRef;
+                            for (var ch = 0; ch < choices.length; ch++) {
+                                if (choices[ch].name === choiceRef) {
+                                    choiceLabel = choices[ch].choiceText || choices[ch].label || choiceRef;
+                                    break;
+                                }
+                            }
+                            html += '<div class="choice-item" data-qid="' + qId + '" data-val="' + choiceLabel + '" onclick="selectChoice(this)">';
+                            html += '<div class="choice-radio"></div>';
+                            html += '<div class="choice-text">' + choiceLabel + '</div>';
+                            html += '</div>';
+                        }
+                        html += '</div>';
+
+                    } else {
+                        // Free text
+                        html += '<textarea class="text-input" data-qid="' + qId + '" placeholder="Type your response here..." oninput="updateText(this)"></textarea>';
+                    }
+
+                    html += '</div>';
+                }
+            }
+
+            // If no screens found, show raw keys for debugging
+            if (qNum === 0) {
+                html += '<div style="padding:20px;color:#888;font-size:12px;">';
+                html += '<p>Flow JSON keys: ' + Object.keys(flowData).join(', ') + '</p>';
+                html += '<p style="margin-top:10px">Screens found: ' + screens.length + '</p>';
+                for (var s = 0; s < screens.length; s++) {
+                    html += '<p>Screen ' + s + ' fields: ' + (screens[s].fields || []).length + '</p>';
+                }
+                html += '</div>';
+            }
+
+            card.innerHTML = html;
+            document.getElementById('surveyActions').style.display = 'flex';
+            log('Rendered ' + qNum + ' question(s)', 'log-info');
+        }
+
+        function updateRating(el) {
+            var qid = el.getAttribute('data-qid');
+            responses[qid] = el.value;
+            document.getElementById('rv_' + qid).textContent = el.value;
+        }
+
+        function selectChoice(el) {
+            var qid = el.getAttribute('data-qid');
+            var val = el.getAttribute('data-val');
+            // Deselect siblings
+            var siblings = el.parentElement.children;
+            for (var i = 0; i < siblings.length; i++) {
+                siblings[i].classList.remove('selected');
+            }
+            el.classList.add('selected');
+            responses[qid] = val;
+            log('Q "' + qid.substring(0, 20) + '..." = ' + val, 'log-dim');
+        }
+
+        function updateText(el) {
+            var qid = el.getAttribute('data-qid');
+            responses[qid] = el.value;
+        }
+
+        // ---- API calls ----
+        function loadSurvey() {
+            log('=== getSurveyFlowJson ===', 'log-warn');
+            var arg = {developerName: 'visit_survey'};
+            log('Calling with: ' + JSON.stringify(arg), 'log-data');
+            document.getElementById('surveyCard').innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>Loading survey flow...</p></div>';
+            document.getElementById('surveyActions').style.display = 'none';
+            try {
+                PresentationPlayer.getSurveyFlowJson(arg);
+                log('Request sent. Awaiting surveyflowjsonloaded...', 'log-info');
+            } catch(e) {
+                log('ERROR: ' + e.message, 'log-error');
+                setStatus(false, 'Error');
+            }
+        }
+
+        function debugConfigState() {
+            log('--- DEBUG: configData state ---', 'log-warn');
+            log('configData type: ' + typeof configData, 'log-data');
+            log('configData is null: ' + (configData === null), 'log-data');
+            log('configData is undefined: ' + (configData === undefined), 'log-data');
+            if (configData) {
+                log('configData keys: ' + Object.keys(configData).join(', '), 'log-data');
+                log('configData.customers: ' + JSON.stringify(configData.customers || 'undefined'), 'log-data');
+                log('configData.visits: ' + JSON.stringify(configData.visits || 'undefined'), 'log-data');
+                log('configData.user: ' + JSON.stringify(configData.user || 'undefined'), 'log-data');
+                log('configData.parameters: ' + JSON.stringify(configData.parameters || 'undefined'), 'log-data');
+                log('Full configData: ' + JSON.stringify(configData).substring(0, 1000), 'log-data');
+            }
+            log('currentAccountId: ' + currentAccountId, 'log-data');
+            log('currentAccountName: ' + currentAccountName, 'log-data');
+            log('--- END DEBUG ---', 'log-warn');
+        }
+
+        function doSaveOrSubmit(state) {
+            log('=== setSurveyFlowJson (' + state + ') ===', 'log-warn');
+
+            // Debug: dump configData state
+            debugConfigState();
+
+            // Warn but don't block if no account
+            if (!hasAccountContext()) {
+                log('WARNING: No HCP context detected. Submitting anyway to test.', 'log-error');
+            } else {
+                log('Account: ' + (currentAccountName || currentAccountId), 'log-info');
+            }
+
+            // Collect responses
+            log('Responses collected: ' + JSON.stringify(responses), 'log-data');
+
+            var modifiedFlow = buildPayload();
+            log('Modified flow (first 800 chars):', 'log-dim');
+            log(JSON.stringify(modifiedFlow).substring(0, 800), 'log-data');
+
+            try {
+                PresentationPlayer.setSurveyFlowJson(modifiedFlow, state);
+                log('setSurveyFlowJson called with state=' + state, 'log-info');
+                if (state === 'save') {
+                    showSuccess('Draft Saved!', 'Responses saved. You can resume later.');
+                } else {
+                    showSuccess('Survey Submitted!', 'Thank you for your feedback.');
+                }
+            } catch(e) {
+                log('ERROR calling setSurveyFlowJson: ' + e.message, 'log-error');
+            }
+        }
+
+        function saveDraft() {
+            doSaveOrSubmit('save');
+        }
+
+        function submitFinal() {
+            doSaveOrSubmit('submit');
+        }
+
+        function buildPayload() {
+            // Deep copy the flow data so we don't mutate the original
+            var data = JSON.parse(JSON.stringify(surveyFlowData));
+            var injected = 0;
+
+            // Inject responses into screen fields
+            var screens = data.screens || [];
+            for (var s = 0; s < screens.length; s++) {
+                var fields = screens[s].fields || [];
+                for (var f = 0; f < fields.length; f++) {
+                    var field = fields[f];
+                    var qId = field.name;
+                    if (qId && responses[qId] !== undefined && responses[qId] !== '') {
+                        // Set the value on the field
+                        field.value = responses[qId];
+                        // Also set fieldValue and defaultValue for compatibility
+                        field.fieldValue = responses[qId];
+                        field.defaultValue = responses[qId];
+                        // For choice fields, also set the selectedChoiceValue
+                        if (field.choiceReferences && field.choiceReferences.length > 0) {
+                            // Find the matching choice reference name for this answer
+                            var choices = data.choices || [];
+                            for (var ch = 0; ch < choices.length; ch++) {
+                                var choiceText = choices[ch].choiceText || choices[ch].label || '';
+                                if (choiceText === responses[qId]) {
+                                    field.value = choices[ch].name;
+                                    field.fieldValue = choices[ch].name;
+                                    field.selectedChoiceValue = choices[ch].name;
+                                    break;
+                                }
+                            }
+                        }
+                        injected++;
+                        log('Injected: ' + qId.substring(0, 30) + '... = ' + responses[qId], 'log-dim');
+                    }
+                }
+            }
+
+            log('Injected ' + injected + ' response(s) into flow JSON', 'log-info');
+            return data;
+        }
+
+        function showSuccess(title, sub) {
+            document.getElementById('successText').textContent = title;
+            document.getElementById('successSub').textContent = sub;
+            document.getElementById('successOverlay').classList.add('visible');
+        }
+        function hideSuccess() {
+            document.getElementById('successOverlay').classList.remove('visible');
+        }
+
+        function showNoAccountModal() {
+            document.getElementById('noAccountModal').classList.add('visible');
+        }
+        function closeModal() {
+            document.getElementById('noAccountModal').classList.remove('visible');
+        }
+
+        // ---- Init ----
+        if (typeof PresentationPlayer !== 'undefined' && PresentationPlayer.registerEventListener) {
+            setStatus(true, 'Connected');
+            log('PresentationPlayer detected', 'log-info');
+
+            PresentationPlayer.registerEventListener('surveyflowjsonloaded', function(data) {
+                log('=== EVENT: surveyflowjsonloaded ===', 'log-warn');
+                log('Data type: ' + typeof data, 'log-dim');
+                try {
+                    surveyFlowData = (typeof data === 'string') ? JSON.parse(data) : data;
+                    log('Keys: ' + Object.keys(surveyFlowData).join(', '), 'log-info');
+                    log('Label: ' + (surveyFlowData.label || 'N/A'), 'log-data');
+                    log('Screens: ' + (surveyFlowData.screens || []).length, 'log-data');
+                    log('Choices: ' + (surveyFlowData.choices || []).length, 'log-data');
+                    document.getElementById('surveyId').textContent = surveyFlowData.fullName || '';
+
+                    // Log full JSON
+                    log('Full JSON:', 'log-dim');
+                    log(JSON.stringify(surveyFlowData, null, 2), 'log-data');
+
+                    renderSurvey(surveyFlowData);
+                } catch(e) {
+                    log('Parse error: ' + e.message, 'log-error');
+                    log('Raw: ' + String(data).substring(0, 500), 'log-error');
+                }
+            });
+
+            PresentationPlayer.registerEventListener('surveyflowjsonpassedtovisit', function(data) {
+                log('=== EVENT: surveyflowjsonpassedtovisit ===', 'log-warn');
+                log(JSON.stringify(data, null, 2), 'log-data');
+            });
+
+            log('Listeners registered', 'log-info');
+            log('Auto-loading survey...', 'log-dim');
+            loadSurvey();
+        } else {
+            setStatus(false, 'Not in LSC app');
+            log('PresentationPlayer not available', 'log-error');
+            log('Running outside LSC mobile app', 'log-dim');
+            // Show demo UI with sample data
+            var demoData = {
+                label: 'Visit Survey',
+                fullName: 'visit_survey',
+                screens: [{
+                    fields: [
+                        { name: 'q_satisfaction', fieldText: 'How would you rate your overall satisfaction with the information provided during today\'s visit?', fieldType: 'Slider', scale: '10' },
+                        { name: 'q_confidence', fieldText: 'How confident do you feel in prescribing or recommending this product based on your current understanding?', fieldType: 'RadioButtons', choiceReferences: ['c_very', 'c_confident', 'c_somewhat', 'c_not'] },
+                        { name: 'q_additional', fieldText: 'What additional clinical data, resources, or support would be most helpful for you at this time?', fieldType: 'LargeTextArea' }
+                    ]
+                }],
+                choices: [
+                    { name: 'c_very', choiceText: 'Very Confident' },
+                    { name: 'c_confident', choiceText: 'Confident' },
+                    { name: 'c_somewhat', choiceText: 'Somewhat Confident' },
+                    { name: 'c_not', choiceText: 'Not Confident' }
+                ]
+            };
+            // Simulate account context for demo
+            currentAccountId = '001DEMO000000001';
+            currentAccountName = 'Dr. Sarah Chen (Demo)';
+            updateAccountBanner(currentAccountName, currentAccountId);
+            log('Demo account context set: ' + currentAccountName, 'log-info');
+
+            log('Loading demo data for preview...', 'log-warn');
+            surveyFlowData = demoData;
+            renderSurvey(demoData);
+        }
+    </script>
+</body>
+</html>
