@@ -247,6 +247,29 @@ Both `getSurveyFlowJson` and `setSurveyFlowJson` are **mobile only** — they do
 
 The `PresentationDOMContentLoaded` event fires exactly once when the slide loads. It provides `configData.parameters.accountId` from the visit context. Do not rely on user interaction for account selection — the context must come from the visit.
 
+## Troubleshooting
+
+### Survey Records Not Syncing to Server
+
+If `setSurveyFlowJson` creates records locally on the iPad (visible in `SurveyQstnResponseOffline`) but the records never sync up to the server, check the **Object Metadata Cache Configuration** in the Admin Console.
+
+The following objects must be configured:
+
+| Object | Required |
+|--------|----------|
+| `SurveyInvitation` | Yes |
+| `SurveyQstnResponseOffline` | Yes |
+| `SurveyResponseOffline` | Yes |
+
+For each of these objects, ensure:
+
+- The object **exists** in the Object Metadata Cache Configuration
+- The **"Allow only one-way sync from web to mobile"** flag is **NOT checked**
+
+If one-way sync is enabled, the mobile app will download these records but will never push locally-created records back to the server. This silently prevents survey responses from reaching Salesforce, even though the records appear to be created successfully on the device.
+
+**Where to check:** Admin Console → Object Metadata Cache Configuration → search for each object → verify the one-way sync flag is unchecked.
+
 ## Setup
 
 1. **Create the survey** (if it doesn't exist):
