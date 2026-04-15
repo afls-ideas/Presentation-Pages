@@ -219,10 +219,15 @@
     </div>
 
     <script type="text/javascript">
+        // Capture configData FIRST — must be before any other code (event fires early)
+        var configData;
+        document.addEventListener('PresentationDOMContentLoaded', function(event) {
+            configData = event.data;
+        });
+
         var surveyFlowData = null;
         var responses = {};
         var consoleEl = document.getElementById('console');
-        var configData = null;
         var currentAccountId = null;
         var currentAccountName = null;
 
@@ -272,75 +277,46 @@
             return !!currentAccountId;
         }
 
-        function onAccountLoaded(data) {
-            if ((data.state === 'success' || data.records) && data.records && data.records.length > 0) {
-                currentAccountName = data.records[0].Name || 'Unknown';
-                log('Account: ' + currentAccountName + ' (' + currentAccountId + ')', 'log-info');
+
+        // Process configData (captured at top of script via early listener)
+        function processConfigData() {
+            log('=== configData ===', 'log-warn');
+            if (!configData) {
+                log('configData is null — event may not have fired', 'log-error');
+                updateAccountBanner(null, null);
+                return;
+            }
+            log('Config keys: ' + Object.keys(configData).join(', '), 'log-dim');
+
+            // Log relevant sections from documented JSON structure
+            if (configData.customers) log('customers: ' + JSON.stringify(configData.customers), 'log-data');
+            if (configData.visits) log('visits: ' + JSON.stringify(configData.visits), 'log-data');
+            if (configData.user) log('user: ' + JSON.stringify(configData.user), 'log-data');
+
+            // Primary: customers[] array (selected attendees)
+            if (configData.customers && configData.customers.length > 0) {
+                var customer = configData.customers[0];
+                currentAccountId = customer.id;
+                currentAccountName = customer.name || ((customer.firstName || '') + ' ' + (customer.lastName || '')).trim() || null;
+                log('HCP from customers[]: ' + (currentAccountName || currentAccountId), 'log-info');
                 updateAccountBanner(currentAccountName, currentAccountId);
-            } else {
-                log('Account query returned no results for ' + currentAccountId, 'log-warn');
-                updateAccountBanner(null, currentAccountId);
+                return;
             }
-        }
 
-        // Search for accountId in any nested object
-        function findAccountId(obj, depth) {
-            if (!obj || typeof obj !== 'object' || depth > 4) return null;
-            // Direct property names to check
-            var keys = ['accountId', 'AccountId', 'account_id', 'accountid'];
-            for (var i = 0; i < keys.length; i++) {
-                if (obj[keys[i]]) return obj[keys[i]];
-            }
-            // Recurse into child objects
-            var objKeys = Object.keys(obj);
-            for (var k = 0; k < objKeys.length; k++) {
-                var val = obj[objKeys[k]];
-                if (val && typeof val === 'object') {
-                    var found = findAccountId(val, (depth || 0) + 1);
-                    if (found) return found;
+            // Fallback: visits[] array
+            if (configData.visits && configData.visits.length > 0) {
+                var visit = configData.visits[0];
+                if (visit.accountId) {
+                    currentAccountId = visit.accountId;
+                    log('HCP from visits[]: ' + currentAccountId, 'log-info');
+                    updateAccountBanner(null, currentAccountId);
+                    return;
                 }
             }
-            return null;
+
+            log('No customers or visits in configData', 'log-warn');
+            updateAccountBanner(null, null);
         }
-
-        function applyAccountId(accountId) {
-            if (!accountId || currentAccountId) return;
-            currentAccountId = accountId;
-            log('Account ID detected: ' + currentAccountId, 'log-info');
-            updateAccountBanner(null, currentAccountId);
-            try {
-                PresentationPlayer.fetchWithParams(
-                    "SELECT Id, Name FROM Account WHERE Id = '" + currentAccountId + "' LIMIT 1",
-                    {'batchSize': 1}, 'onAccountLoaded'
-                );
-            } catch(e) {
-                log('Could not query account name: ' + e.message, 'log-warn');
-            }
-        }
-
-        // Listen for config data (provides accountId, visitId, userId)
-        document.addEventListener('PresentationDOMContentLoaded', function(event) {
-            // Try both event.data and event.detail (varies by player version)
-            configData = event.data || event.detail || {};
-            log('=== PresentationDOMContentLoaded ===', 'log-warn');
-            log('event.data type: ' + typeof event.data + ', event.detail type: ' + typeof event.detail, 'log-dim');
-            log('Config dump: ' + JSON.stringify(configData, null, 2), 'log-data');
-
-            // Try the standard path first
-            if (configData && configData.parameters && configData.parameters.accountId) {
-                applyAccountId(configData.parameters.accountId);
-            } else {
-                // Deep search for accountId anywhere in the config
-                var found = findAccountId(configData, 0);
-                if (found) {
-                    log('Found accountId via deep search: ' + found, 'log-info');
-                    applyAccountId(found);
-                } else {
-                    log('No accountId found in config. Full keys: ' + JSON.stringify(configData), 'log-warn');
-                    updateAccountBanner(null, null);
-                }
-            }
-        });
 
         // ---- Render survey from flow JSON ----
         function renderSurvey(flowData) {
@@ -573,13 +549,13 @@
             document.getElementById('noAccountModal').classList.remove('visible');
         }
 
-        // Make callback global for fetchWithParams
-        window.onAccountLoaded = onAccountLoaded;
-
         // ---- Init ----
         if (typeof PresentationPlayer !== 'undefined' && PresentationPlayer.registerEventListener) {
             setStatus(true, 'Connected');
             log('PresentationPlayer detected', 'log-info');
+
+            // Process configData captured by early listener
+            processConfigData();
 
             PresentationPlayer.registerEventListener('surveyflowjsonloaded', function(data) {
                 log('=== EVENT: surveyflowjsonloaded ===', 'log-warn');
