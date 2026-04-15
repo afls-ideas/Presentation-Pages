@@ -132,26 +132,8 @@
     </style>
 </head>
 <body>
-    <!-- Mustache-injected customer data (hidden, read by JS) -->
-    <div id="mustache-data" style="display:none">
-        {{#customers}}
-        <div class="mustache-customer"
-             data-id="{{id}}"
-             data-name="{{name}}"
-             data-firstname="{{firstName}}"
-             data-lastname="{{lastName}}"
-             data-primary="{{isPrimary}}"
-             data-type="{{accountType}}">
-        </div>
-        {{/customers}}
-        {{#visits}}
-        <div class="mustache-visit"
-             data-id="{{id}}"
-             data-accountid="{{accountId}}"
-             data-parent="{{isParent}}">
-        </div>
-        {{/visits}}
-    </div>
+    <span id="mst-customer-id" style="display:none">{{#customers}}{{id}}{{/customers}}</span>
+    <span id="mst-customer-name" style="display:none">{{#customers}}{{name}}{{/customers}}</span>
     <div class="slide">
         <div class="header">
             <div class="header-left">
@@ -175,7 +157,6 @@
                         <div class="account-warning" id="accountLabel">No HCP selected</div>
                         <div class="account-id" id="accountDetail">Open this presentation from a visit to link survey responses</div>
                     </div>
-                    <button class="btn btn-small btn-outline" id="detectBtn" onclick="reloadSlide()" style="display:none;flex-shrink:0">Reload</button>
                 </div>
                 <div class="survey-card" id="surveyCard">
                     <div class="loading" id="loadingState">
@@ -293,58 +274,29 @@
             return !!currentAccountId;
         }
 
-        // Read account context from Mustache-injected hidden elements
-        function readMustacheData() {
-            log('=== Reading Mustache-injected data ===', 'log-warn');
-            var container = document.getElementById('mustache-data');
-            if (!container) {
-                log('No mustache-data container found', 'log-error');
-                return;
-            }
+        // Read HCP from Mustache-injected hidden spans
+        function readMustacheAccount() {
+            var idEl = document.getElementById('mst-customer-id');
+            var nameEl = document.getElementById('mst-customer-name');
+            var rawId = idEl ? idEl.textContent.trim() : '';
+            var rawName = nameEl ? nameEl.textContent.trim() : '';
 
-            // Read customers
-            var customerEls = container.querySelectorAll('.mustache-customer');
-            log('Customers found: ' + customerEls.length, 'log-info');
-            for (var i = 0; i < customerEls.length; i++) {
-                var el = customerEls[i];
-                var id = el.getAttribute('data-id');
-                var name = el.getAttribute('data-name');
-                var firstName = el.getAttribute('data-firstname');
-                var lastName = el.getAttribute('data-lastname');
-                var isPrimary = el.getAttribute('data-primary');
-                var accountType = el.getAttribute('data-type');
-                log('Customer ' + i + ': id=' + id + ', name=' + name + ', type=' + accountType + ', primary=' + isPrimary, 'log-data');
+            log('=== Mustache customer data ===', 'log-warn');
+            log('Raw ID text: "' + rawId + '"', 'log-data');
+            log('Raw Name text: "' + rawName + '"', 'log-data');
 
-                if (id && !currentAccountId) {
-                    currentAccountId = id;
-                    currentAccountName = name || ((firstName || '') + ' ' + (lastName || '')).trim() || null;
-                    log('HCP set: ' + (currentAccountName || currentAccountId), 'log-info');
-                    updateAccountBanner(currentAccountName, currentAccountId);
-                }
-            }
-
-            // Read visits
-            var visitEls = container.querySelectorAll('.mustache-visit');
-            log('Visits found: ' + visitEls.length, 'log-info');
-            for (var v = 0; v < visitEls.length; v++) {
-                var vel = visitEls[v];
-                log('Visit ' + v + ': id=' + vel.getAttribute('data-id') + ', accountId=' + vel.getAttribute('data-accountid') + ', isParent=' + vel.getAttribute('data-parent'), 'log-data');
-
-                // Fallback: if no customer, use visit accountId
-                if (!currentAccountId && vel.getAttribute('data-accountid')) {
-                    currentAccountId = vel.getAttribute('data-accountid');
-                    log('HCP set from visit: ' + currentAccountId, 'log-info');
-                    updateAccountBanner(null, currentAccountId);
-                }
-            }
-
-            if (!currentAccountId) {
-                log('No HCP found in Mustache data', 'log-warn');
-                // Check if Mustache wasn't processed (raw templates still present)
-                var raw = container.innerHTML;
-                if (raw.indexOf('{{') !== -1) {
-                    log('Mustache templates not processed — running outside LSC?', 'log-warn');
-                }
+            if (rawId && rawId.indexOf('{{') === -1) {
+                // Mustache was processed and gave us data
+                // If multiple customers, take the first 18-char Salesforce ID
+                currentAccountId = rawId.substring(0, 18);
+                currentAccountName = rawName || null;
+                log('HCP detected: ' + (currentAccountName || '') + ' (' + currentAccountId + ')', 'log-info');
+                updateAccountBanner(currentAccountName, currentAccountId);
+            } else if (rawId.indexOf('{{') !== -1) {
+                log('Mustache not processed — templates still raw', 'log-warn');
+                updateAccountBanner(null, null);
+            } else {
+                log('No customer in Mustache data (no HCP selected?)', 'log-warn');
                 updateAccountBanner(null, null);
             }
         }
@@ -585,8 +537,8 @@
             setStatus(true, 'Connected');
             log('PresentationPlayer detected', 'log-info');
 
-            // Read HCP from Mustache-injected data
-            readMustacheData();
+            // Read HCP from Mustache-injected hidden spans
+            readMustacheAccount();
 
             PresentationPlayer.registerEventListener('surveyflowjsonloaded', function(data) {
                 log('=== EVENT: surveyflowjsonloaded ===', 'log-warn');
